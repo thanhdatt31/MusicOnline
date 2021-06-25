@@ -33,8 +33,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Intent(this, MyService::class.java).also { intent ->
-            startService(intent)
-//            bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
     }
 
