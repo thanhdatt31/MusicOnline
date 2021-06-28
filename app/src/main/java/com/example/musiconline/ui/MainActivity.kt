@@ -1,64 +1,88 @@
 package com.example.musiconline.ui
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
+import androidx.core.view.GravityCompat
 import com.example.musiconline.R
 import com.example.musiconline.databinding.ActivityMainBinding
-import com.example.musiconline.service.MyService
-import com.example.musiconline.ui.fragment.FavoriteFragment
 import com.example.musiconline.ui.fragment.HomeFragment
-import com.example.musiconline.ui.fragment.SearchFragment
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.musiconline.ui.fragment.OfflineMusicFragment
+import com.google.android.material.navigation.NavigationView
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.toolbar.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: ActivityMainBinding
-
-
+    private var homeFragment = HomeFragment()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-//        val bottomNavigation: BottomNavigationView = binding.navigationView
-//        bottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
-        val homeFragment = HomeFragment()
-        openFragment(homeFragment)
+        setSupportActionBar(toolbar)
+        val toggle = ActionBarDrawerToggle(
+            this,
+            drawerLayout,
+            toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+        nav_view.setNavigationItemSelectedListener(this)
+        displayScreen(0)
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.relativelayout, homeFragment).commit()
+
+
+//        val homeFragment = HomeFragment()
+//        openFragment(homeFragment)
     }
 
-//    private val mOnNavigationItemSelectedListener =
-//        BottomNavigationView.OnNavigationItemSelectedListener {
-//            when (it.itemId) {
-//                R.id.home -> {
-//                    val homeFragment = HomeFragment()
-//                    openFragment(homeFragment)
-//                    return@OnNavigationItemSelectedListener true
-//                }
-//
-//                R.id.favorite -> {
-//                    val searchFragment = SearchFragment()
-//                    openFragment(searchFragment)
-//                    return@OnNavigationItemSelectedListener true
-//                }
-//
-//                R.id.search -> {
-//                    val favoriteFragment = FavoriteFragment()
-//                    openFragment(favoriteFragment)
-//                    return@OnNavigationItemSelectedListener true
-//                }
-//            }
-//            false
-//        }
 
-    private fun openFragment(fragment: Fragment) {
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.container, fragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
+    private fun displayScreen(i: Int) {
+        when (i) {
+            R.id.nav_home -> {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.relativelayout, HomeFragment()).commit()
+            }
+            R.id.music_offline -> {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.relativelayout, OfflineMusicFragment()).commit()
+            }
+            R.id.nav_aboutUs -> {
+                Toast.makeText(this, "About Us", Toast.LENGTH_SHORT).show()
+            }
+
+            R.id.nav_rateMe -> {
+                Toast.makeText(this, "Rate Me 5 Star", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
+
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        displayScreen(item.itemId)
+        drawerLayout.closeDrawer(GravityCompat.START)
+        return true
+    }
+
 
 }

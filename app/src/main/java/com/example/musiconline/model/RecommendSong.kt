@@ -3,12 +3,10 @@ package com.example.musiconline.model
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-class Data(
-    @SerializedName("song")
+class RecommendSong(
+    @SerializedName("data")
     @Expose
-    var song: ArrayList<Song>,
-    @SerializedName("items")
-    @Expose
-    var items: ArrayList<Song>
+    var data: Data
 ) {
+
 }

@@ -1,5 +1,11 @@
 package com.example.musiconline.ulti
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import com.example.musiconline.R
 import java.util.concurrent.TimeUnit
 
 object Const {
@@ -20,5 +26,18 @@ object Const {
             TimeUnit.MILLISECONDS.toSeconds(duration) -
                     TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration))
         )
+    }
+    fun getAlbumBitmap(context: Context, audioUri: Uri): Bitmap {
+        val mmr = MediaMetadataRetriever()
+        val art: Bitmap
+        val bfo = BitmapFactory.Options()
+        mmr.setDataSource(context, audioUri)
+        val rawArt: ByteArray? = mmr.embeddedPicture
+        return if (null != rawArt) {
+            art = BitmapFactory.decodeByteArray(rawArt, 0, rawArt.size, bfo)
+            art
+        } else {
+            BitmapFactory.decodeResource(context.resources, R.drawable.img_beat)
+        }
     }
 }

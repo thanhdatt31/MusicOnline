@@ -9,7 +9,6 @@
     android:visibility="visible"
     tools:context=".ui.PlayerActivity">
 
-
     <ImageView
         android:id="@+id/btn_down"
         android:layout_width="wrap_content"
@@ -19,42 +18,40 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="1dp"
+        app:layout_constraintBottom_toTopOf="@+id/viewPager"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:tabBackground="@drawable/indicator_selector"
+        android:background="@color/black"
+        app:tabIndicatorColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/btn_shuffle"/>
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintBottom_toTopOf="@id/seekBar"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout" />
+
+    <View
         android:id="@+id/img_album_full"
         android:layout_width="0dp"
         android:layout_height="200dp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.2"
         app:layout_constraintWidth_percent="0.7" />
-
-    <TextView
-        android:id="@+id/tv_song_title_full"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:fontFamily="@font/raleway_black"
-        android:text="@string/app_name"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/img_album_full" />
-
-    <TextView
-        android:id="@+id/tv_artist_title_full"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:fontFamily="@font/raleway_regular"
-        android:text="@string/app_name"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_song_title_full" />
 
 
     <SeekBar

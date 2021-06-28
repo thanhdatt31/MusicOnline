@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
@@ -34,79 +35,77 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MyService : Service() {
+class MyService : Service(), MediaPlayer.OnPreparedListener {
     private val mIBinder = BinderAudio()
     private var mAudioList: ArrayList<Song> = arrayListOf()
-    private var mPosition = 0
+    private var mPosition: MutableLiveData<Int> = MutableLiveData()
+    private var isPlaying: MutableLiveData<Boolean> = MutableLiveData()
+    private var audioListLiveData: MutableLiveData<ArrayList<Song>> = MutableLiveData()
     private var musicPlayer: MediaPlayer = MediaPlayer()
     private lateinit var thumbnail: Bitmap
+
     inner class BinderAudio : Binder() {
         fun getService(): MyService = this@MyService
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
+    override fun onBind(intent: Intent?): IBinder {
         return mIBinder
     }
 
-    fun getListAudioAndPosition(data: ArrayList<Song>, position: Int) {
+    fun setListAudioAndPosition(data: ArrayList<Song>, position: Int) {
         if (mAudioList.isNotEmpty()) {
             mAudioList.clear()
             mAudioList.addAll(data)
+            audioListLiveData.value = mAudioList
+            mPosition.value = position
+
         } else {
             mAudioList.addAll(data)
+            audioListLiveData.value = mAudioList
+            mPosition.value = position
         }
-        mPosition = position
+
+    }
+
+    fun getListAudioLiveData(): MutableLiveData<ArrayList<Song>> {
+        return audioListLiveData
+    }
+
+    fun getListAudio(): ArrayList<Song> {
+        return mAudioList
+    }
+
+    fun getCurrentPosition(): Int {
+        return musicPlayer.currentPosition
     }
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         registerReceiver(broadcastReceiver, IntentFilter(SEND_ACTION_FROM_NOTIFICATION))
+        registerReceiver(broadcastReceiver, IntentFilter("progress_from_activity"))
     }
 
     private fun getBitmap() {
         GlobalScope.launch(Dispatchers.IO) {
             thumbnail = Glide.with(this@MyService)
                 .asBitmap()
-                .load(mAudioList[mPosition].thumbnail)
+                .load(mAudioList[mPosition.value!!].thumbnail)
                 .submit()
                 .get()
         }
     }
-    fun getPosition() : Int{
+
+    fun getPosition(): MutableLiveData<Int> {
         return mPosition
     }
-    fun playAudio() {
-        if (checkPositionAndList()) {
-            getBitmap()
-            musicPlayer.reset()
-            musicPlayer.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
-            val urlMp3 =
-                "http://api.mp3.zing.vn/api/streaming/audio/${mAudioList[mPosition].id}/128"
-            musicPlayer.setDataSource(urlMp3)
-            musicPlayer.prepare()
-            musicPlayer.start()
-            showNotification()
-            sendDataToActivity(ACTION_START)
-        }
 
-    }
-
-    private fun sendDataToActivity(action: Int) {
+    fun sendDataToActivity(action: Int) {
         val intent = Intent("send_data_to_activity")
         val bundle = Bundle()
         bundle.putInt("action", action)
         intent.putExtras(bundle)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-    }
-
-    fun getStatusPlayer(): Boolean {
-        return musicPlayer.isPlaying
     }
 
     private fun createNotificationChannel() {
@@ -128,16 +127,16 @@ class MyService : Service() {
         val notificationBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(mAudioList[mPosition].title)
-                .setContentText(mAudioList[mPosition].artists_names)
+                .setContentTitle(mAudioList[mPosition.value!!].title)
+                .setContentText(mAudioList[mPosition.value!!].artists_names)
                 .setContentIntent(pendingIntent)
                 .setStyle(
                     androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSessionCompat.sessionToken)
                 )
-                .setLargeIcon(
-                    thumbnail
-                )
+//                .setLargeIcon(
+//                    thumbnail
+//                )
                 .addAction(
                     R.drawable.ic_baseline_arrow_left_24, "Back", getPendingIntent(
                         this,
@@ -197,6 +196,10 @@ class MyService : Service() {
                         val actionMusic: Int = intent.getIntExtra("action_music", 0)
                         handleActionMusic(actionMusic)
                     }
+                    "progress_from_activity" -> {
+                        val progress = intent.getIntExtra("progress", 0)
+                        musicPlayer.seekTo(progress)
+                    }
                 }
             }
         }
@@ -225,17 +228,43 @@ class MyService : Service() {
         }
     }
 
+    fun playAudioOnline() {
+        if (checkPositionAndList()) {
+            musicPlayer.reset()
+            musicPlayer.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            if(mAudioList[mPosition.value!!].thumbnail != null){
+                val url =
+                    "http://api.mp3.zing.vn/api/streaming/audio/${mAudioList[mPosition.value!!].id}/128"
+                musicPlayer.setDataSource(url)
+            } else {
+                musicPlayer.setDataSource(this,mAudioList[mPosition.value!!].uri)
+            }
+            musicPlayer.prepareAsync()
+            musicPlayer.setOnPreparedListener(this)
+        }
+    }
+
+
+    fun getStatusPlayer(): MutableLiveData<Boolean> {
+        return isPlaying
+    }
+
     fun previousMusic() {
         musicPlayer.pause()
-        mPosition -= 1
-        playAudio()
+        mPosition.value = mPosition.value?.minus(1)
+        playAudioOnline()
         sendDataToActivity(ACTION_START)
     }
 
     fun nextMusic() {
         musicPlayer.pause()
-        mPosition += 1
-        playAudio()
+        mPosition.value = mPosition.value?.plus(1)
+        playAudioOnline()
         sendDataToActivity(ACTION_START)
     }
 
@@ -243,16 +272,25 @@ class MyService : Service() {
         musicPlayer.pause()
         showNotification()
         sendDataToActivity(ACTION_PAUSE)
+        isPlaying.value = musicPlayer.isPlaying
     }
 
-    fun resumeMusic(){
+    fun resumeMusic() {
         musicPlayer.start()
         showNotification()
         sendDataToActivity(ACTION_RESUME)
+        isPlaying.value = musicPlayer.isPlaying
     }
 
     private fun checkPositionAndList(): Boolean {
-        return mPosition != 0 && mAudioList.size != 0
+        return mPosition.value != 0 && mAudioList.size != 0
+    }
+
+    override fun onPrepared(mp: MediaPlayer?) {
+        mp?.start()
+        showNotification()
+        sendDataToActivity(ACTION_START)
+        isPlaying.value = mp?.isPlaying
     }
 
 }

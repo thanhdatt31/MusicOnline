@@ -1,9 +1,9 @@
 package com.example.musiconline.ui.fragment
 
 import android.content.*
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +17,7 @@ import com.example.musiconline.R
 import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentHomeBinding
 import com.example.musiconline.model.Song
-import com.example.musiconline.repository.MainRepo
+import com.example.musiconline.repository.MainRepository
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ui.PlayerActivity
 import com.example.musiconline.ulti.Const.ACTION_PAUSE
@@ -26,9 +26,6 @@ import com.example.musiconline.ulti.Const.ACTION_START
 import com.example.musiconline.ulti.Resource
 import com.example.musiconline.viewmodel.MainViewModel
 import com.example.musiconline.viewmodel.ViewModelProviderFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -39,11 +36,14 @@ class HomeFragment : Fragment() {
     private lateinit var mService: MyService
     private var mBound: Boolean = false
     private var mPosition = 0
-    private lateinit var thumbnail: Bitmap
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as MyService.BinderAudio
             mService = binder.getService()
+            mService.getPosition().observe(this@HomeFragment, {
+                mPosition = it
+            })
+            mAudioList = mService.getListAudio()
             mBound = true
         }
 
@@ -60,6 +60,13 @@ class HomeFragment : Fragment() {
         }
         LocalBroadcastManager.getInstance(requireContext())
             .registerReceiver(broadcastReceiver, IntentFilter("send_data_to_activity"))
+    }
+
+    override fun onDestroy() {
+        requireActivity().unbindService(connection)
+        mBound = false
+        Log.d("datnt", "onDestroy: ")
+        super.onDestroy()
     }
 
     override fun onCreateView(
@@ -85,14 +92,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupViewModel() {
-        val repository = MainRepo()
+        val repository = MainRepository()
         val factory = ViewModelProviderFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
         getTopSong()
     }
 
     private fun getTopSong() {
-        viewModel.topSongData.observe(requireActivity(), { it ->
+        viewModel.topSongData.observe(viewLifecycleOwner, { it ->
             when (it) {
                 is Resource.Success -> {
                     hideProgressBar()
@@ -124,10 +131,9 @@ class HomeFragment : Fragment() {
     private val onClicked = object : SongAdapter.OnItemClickListener {
         override fun onClicked(position: Int) {
             mPosition = position
-            getBitmap(mPosition)
-            mService.getListAudioAndPosition(mAudioList, position)
-            mService.playAudio()
-
+            mService.setListAudioAndPosition(mAudioList, position)
+            mService.playAudioOnline()
+//            startActivity(Intent(requireContext(),PlayerActivity::class.java))
         }
 
     }
@@ -135,12 +141,15 @@ class HomeFragment : Fragment() {
     private fun handleViewMini(action: Int) {
         when (action) {
             ACTION_START -> {
-                mPosition = mService.getPosition()
-                getBitmap(mPosition)
+                mService.getPosition().observe(this, {
+                    mPosition = it
+                })
                 binding.viewMini.visibility = View.VISIBLE
                 binding.tvArtistTitle.text = mAudioList[mPosition].artists_names
                 binding.tvSongTitle.text = mAudioList[mPosition].title
-                binding.imgAlbum.setImageBitmap(thumbnail)
+                Glide.with(requireContext())
+                    .load(mAudioList[mPosition].thumbnail)
+                    .into(binding.imgAlbum)
                 binding.btnNextMini.setOnClickListener {
                     mService.nextMusic()
                 }
@@ -153,6 +162,9 @@ class HomeFragment : Fragment() {
                 }
                 binding.viewMini.setOnClickListener {
                     startActivity(Intent(requireContext(), PlayerActivity::class.java))
+//                    requireActivity().supportFragmentManager.beginTransaction()
+//                        .add(R.id.relativelayout, PlayerFragment())
+//                        .commit()
                 }
             }
             ACTION_PAUSE -> {
@@ -172,23 +184,13 @@ class HomeFragment : Fragment() {
 
     }
 
-    private fun getBitmap(position: Int) {
-        GlobalScope.launch(Dispatchers.IO) {
-            thumbnail = Glide.with(requireContext())
-                .asBitmap()
-                .load(mAudioList[position].thumbnail)
-                .submit()
-                .get()
-        }
-    }
-
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent != null) {
                 when (intent.action) {
                     "send_data_to_activity" -> {
                         val bundle = intent.extras
-                        if (bundle != null) {
+                        if (bundle != null && isAdded) {
                             handleViewMini(bundle.getInt("action"))
                         }
                     }

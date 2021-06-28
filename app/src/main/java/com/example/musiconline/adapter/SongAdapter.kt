@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.example.musiconline.R
 import com.example.musiconline.model.Song
 import com.example.musiconline.ulti.Const.durationConverter
+import com.example.musiconline.ulti.Const.getAlbumBitmap
 import java.io.Serializable
 
 class SongAdapter : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
@@ -34,11 +35,23 @@ class SongAdapter : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val song: Song = songList[position]
         holder.title.text = song.title
-        Glide.with(holder.itemView.context)
-            .load(song.thumbnail)
-            .centerCrop()
-            .into(holder.imgThumb)
-        holder.duration.text = durationConverter((song.duration * 1000).toLong())
+        if (song.thumbnail != null) {
+            Glide.with(holder.itemView.context)
+                .load(song.thumbnail)
+                .centerCrop()
+                .into(holder.imgThumb)
+        } else {
+            Glide.with(holder.itemView.context)
+                .load(getAlbumBitmap(holder.itemView.context, song.uri))
+                .centerCrop()
+                .into(holder.imgThumb)
+        }
+        if (song.duration.toString().length < 4) {
+            holder.duration.text = durationConverter((song.duration * 1000).toLong())
+        } else {
+            holder.duration.text = durationConverter((song.duration).toLong())
+        }
+
         holder.itemView.setOnClickListener {
             listener!!.onClicked(position)
         }
