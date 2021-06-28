@@ -20,6 +20,7 @@ import com.example.musiconline.model.Song
 import com.example.musiconline.repository.MainRepository
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ui.PlayerActivity
+import com.example.musiconline.ulti.Const
 import com.example.musiconline.ulti.Const.ACTION_PAUSE
 import com.example.musiconline.ulti.Const.ACTION_RESUME
 import com.example.musiconline.ulti.Const.ACTION_START
@@ -44,11 +45,73 @@ class HomeFragment : Fragment() {
                 mPosition = it
             })
             mAudioList = mService.getListAudio()
+            mService.getStatusPlayer().observe(viewLifecycleOwner, {
+                val song: Song = mService.getPosition().value!!.let { it1 ->
+                    mService.getListAudioLiveData().value!![it1]
+                }
+                when (it) {
+                    true -> {
+                        if (binding.viewMini.visibility != View.VISIBLE) {
+                            binding.viewMini.visibility = View.VISIBLE
+                        }
+                        hideProgressBar()
+                        binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_pause_24)
+                        binding.btnPlayPause.setOnClickListener {
+                            mService.pauseMusic()
+                        }
+                        handleMusicDetails(song)
+                    }
+                    false -> {
+                        if (binding.viewMini.visibility != View.VISIBLE) {
+                            binding.viewMini.visibility = View.VISIBLE
+                        }
+                        binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_play_arrow_24)
+                        binding.btnPlayPause.setOnClickListener {
+                            mService.resumeMusic()
+                        }
+                        handleMusicDetails(song)
+                    }
+                }
+            })
+            mService.getStatusService().observe(viewLifecycleOwner, {
+                when (it) {
+                    false -> {
+                        if (binding.viewMini.visibility == View.VISIBLE) {
+                            binding.viewMini.visibility = View.GONE
+                        }
+                    }
+                }
+            })
             mBound = true
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
             mBound = false
+        }
+    }
+
+    private fun handleMusicDetails(song: Song) {
+        binding.viewMini.setOnClickListener {
+            startActivity(Intent(requireContext(), PlayerActivity::class.java))
+        }
+        binding.tvSongTitle.text = song.title
+        binding.tvArtistTitle.text = song.artists_names
+        if (song.thumbnail != null) {
+            Glide.with(requireContext())
+                .load(song.thumbnail)
+                .into(binding.imgAlbum)
+        } else {
+            Glide.with(requireContext())
+                .load(Const.getAlbumBitmap(requireContext(), song.uri))
+                .into(binding.imgAlbum)
+        }
+        binding.btnNextMini.setOnClickListener {
+            mService.nextMusic()
+            showProgressBar()
+        }
+        binding.btnPreviousMini.setOnClickListener{
+            mService.previousMusic()
+            showProgressBar()
         }
     }
 
@@ -58,8 +121,6 @@ class HomeFragment : Fragment() {
             requireActivity().startService(intent)
             requireActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
-        LocalBroadcastManager.getInstance(requireContext())
-            .registerReceiver(broadcastReceiver, IntentFilter("send_data_to_activity"))
     }
 
     override fun onDestroy() {
@@ -132,70 +193,8 @@ class HomeFragment : Fragment() {
         override fun onClicked(position: Int) {
             mPosition = position
             mService.setListAudioAndPosition(mAudioList, position)
-            mService.playAudioOnline()
-//            startActivity(Intent(requireContext(),PlayerActivity::class.java))
-        }
-
-    }
-
-    private fun handleViewMini(action: Int) {
-        when (action) {
-            ACTION_START -> {
-                mService.getPosition().observe(this, {
-                    mPosition = it
-                })
-                binding.viewMini.visibility = View.VISIBLE
-                binding.tvArtistTitle.text = mAudioList[mPosition].artists_names
-                binding.tvSongTitle.text = mAudioList[mPosition].title
-                Glide.with(requireContext())
-                    .load(mAudioList[mPosition].thumbnail)
-                    .into(binding.imgAlbum)
-                binding.btnNextMini.setOnClickListener {
-                    mService.nextMusic()
-                }
-                binding.btnPreviousMini.setOnClickListener {
-                    mService.previousMusic()
-                }
-                binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_pause_24)
-                binding.btnPlayPause.setOnClickListener {
-                    mService.pauseMusic()
-                }
-                binding.viewMini.setOnClickListener {
-                    startActivity(Intent(requireContext(), PlayerActivity::class.java))
-//                    requireActivity().supportFragmentManager.beginTransaction()
-//                        .add(R.id.relativelayout, PlayerFragment())
-//                        .commit()
-                }
-            }
-            ACTION_PAUSE -> {
-                binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_play_arrow_24)
-                binding.btnPlayPause.setOnClickListener {
-                    mService.resumeMusic()
-                }
-            }
-            ACTION_RESUME -> {
-                binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_pause_24)
-                binding.btnPlayPause.setOnClickListener {
-                    mService.pauseMusic()
-                }
-            }
-        }
-
-
-    }
-
-    private val broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent != null) {
-                when (intent.action) {
-                    "send_data_to_activity" -> {
-                        val bundle = intent.extras
-                        if (bundle != null && isAdded) {
-                            handleViewMini(bundle.getInt("action"))
-                        }
-                    }
-                }
-            }
+            mService.playAudio()
+            showProgressBar()
         }
 
     }

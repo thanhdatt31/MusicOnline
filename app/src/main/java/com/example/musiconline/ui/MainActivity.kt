@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         displayScreen(0)
         supportFragmentManager.beginTransaction()
             .replace(R.id.relativelayout, homeFragment).commit()
+        toolbar.title = "Music Online"
 
 
 //        val homeFragment = HomeFragment()
@@ -48,10 +49,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_home -> {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.relativelayout, HomeFragment()).commit()
+                toolbar.title = "Music Online"
             }
             R.id.music_offline -> {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.relativelayout, OfflineMusicFragment()).commit()
+                toolbar.title = "Music Offline"
             }
             R.id.nav_aboutUs -> {
                 Toast.makeText(this, "About Us", Toast.LENGTH_SHORT).show()

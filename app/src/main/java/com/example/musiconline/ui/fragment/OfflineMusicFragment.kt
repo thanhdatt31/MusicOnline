@@ -12,11 +12,15 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.example.musiconline.R
 import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentOfflineMusicBinding
 import com.example.musiconline.model.Song
 import com.example.musiconline.repository.MainRepository
 import com.example.musiconline.service.MyService
+import com.example.musiconline.ui.PlayerActivity
+import com.example.musiconline.ulti.Const.getAlbumBitmap
 import com.example.musiconline.viewmodel.MainViewModel
 import com.example.musiconline.viewmodel.ViewModelProviderFactory
 
@@ -49,6 +53,42 @@ class OfflineMusicFragment : Fragment() {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 val binder = service as MyService.BinderAudio
                 mService = binder.getService()
+                mService.getStatusPlayer().observe(viewLifecycleOwner, {
+                    val song: Song = mService.getPosition().value!!.let { it1 ->
+                        mService.getListAudioLiveData().value!![it1]
+                    }
+                    when (it) {
+                        true -> {
+                            if (binding.viewMini.visibility != View.VISIBLE) {
+                                binding.viewMini.visibility = View.VISIBLE
+                            }
+                            binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_pause_24)
+                            binding.btnPlayPause.setOnClickListener {
+                                mService.pauseMusic()
+                            }
+                            handleMusicDetails(song)
+                        }
+                        false -> {
+                            if (binding.viewMini.visibility != View.VISIBLE) {
+                                binding.viewMini.visibility = View.VISIBLE
+                            }
+                            binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_play_arrow_24)
+                            binding.btnPlayPause.setOnClickListener {
+                                mService.resumeMusic()
+                            }
+                            handleMusicDetails(song)
+                        }
+                    }
+                })
+                mService.getStatusService().observe(viewLifecycleOwner, {
+                    when (it) {
+                        false -> {
+                            if (binding.viewMini.visibility == View.VISIBLE) {
+                                binding.viewMini.visibility = View.GONE
+                            }
+                        }
+                    }
+                })
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
@@ -58,6 +98,29 @@ class OfflineMusicFragment : Fragment() {
         }
         Intent(requireContext(), MyService::class.java).also { intent ->
             requireActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    private fun handleMusicDetails(song: Song) {
+        binding.viewMini.setOnClickListener {
+            startActivity(Intent(requireContext(), PlayerActivity::class.java))
+        }
+        binding.tvSongTitle.text = song.title
+        binding.tvArtistTitle.text = song.artists_names
+        if (song.thumbnail != null) {
+            Glide.with(requireContext())
+                .load(song.thumbnail)
+                .into(binding.imgAlbum)
+        } else {
+            Glide.with(requireContext())
+                .load(getAlbumBitmap(requireContext(), song.uri))
+                .into(binding.imgAlbum)
+        }
+        binding.btnNextMini.setOnClickListener {
+            mService.nextMusic()
+        }
+        binding.btnPreviousMini.setOnClickListener{
+            mService.previousMusic()
         }
     }
 
@@ -94,7 +157,7 @@ class OfflineMusicFragment : Fragment() {
         override fun onClicked(position: Int) {
             mPosition = position
             mListOfflineSong?.let { mService.setListAudioAndPosition(it, position) }
-            mService.playAudioOnline()
+            mService.playAudio()
         }
 
     }

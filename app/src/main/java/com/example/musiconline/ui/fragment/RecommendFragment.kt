@@ -33,6 +33,7 @@ class RecommendFragment : Fragment() {
     private var mNewAudioList: ArrayList<Song> = arrayListOf()
     private var mPosition = 0
     private var songAdapter = SongAdapter()
+    private var mListOfflineSong: ArrayList<Song>? = arrayListOf()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -68,7 +69,7 @@ class RecommendFragment : Fragment() {
                 mAudioList = mService.getListAudioLiveData().value!!
                 mPosition = mService.getPosition().value!!
                 if(mAudioList[mPosition].thumbnail == null){
-                    Toast.makeText(requireContext(), "alo", Toast.LENGTH_SHORT).show()
+                    setupViewModel(null)
                 } else {
                     mAudioList[mPosition].id?.let { setupViewModel(it) }
                 }
@@ -117,20 +118,36 @@ class RecommendFragment : Fragment() {
     }
 
 
-    private fun setupViewModel(id: String) {
+    private fun setupViewModel(id: String?) {
         val repository = MainRepository()
         val factory = ViewModelProviderFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
-        viewModel.id = id
-        getRecommendSong()
+        if (id.isNullOrEmpty()) {
+            getOfflineSong()
+        } else {
+            viewModel.id = id
+            getRecommendSong()
+        }
+
+    }
+
+    private fun getOfflineSong() {
+        viewModel.offlineSongData.observe(viewLifecycleOwner, {
+            mListOfflineSong = it
+            songAdapter.setData(it)
+            binding.recyclerView.adapter = songAdapter
+        })
     }
 
     private val onClicked = object : SongAdapter.OnItemClickListener {
         override fun onClicked(position: Int) {
             mPosition = position
-            mService.setListAudioAndPosition(mNewAudioList, position)
-            mService.playAudioOnline()
-//            startActivity(Intent(requireContext(),PlayerActivity::class.java))
+            if (mListOfflineSong.isNullOrEmpty()) {
+                mService.setListAudioAndPosition(mNewAudioList, position)
+            } else {
+                mService.setListAudioAndPosition(mListOfflineSong!!, position)
+            }
+            mService.playAudio()
         }
 
     }

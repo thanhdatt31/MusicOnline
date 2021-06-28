@@ -16,7 +16,6 @@
             android:background="@color/baemin"
             app:layout_constraintTop_toTopOf="parent"
             app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:subtitle="Home"
             app:subtitleTextColor="@color/white"
             app:title="Android App"
             app:titleTextColor="@color/white" />

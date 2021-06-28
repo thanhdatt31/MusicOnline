@@ -41,6 +41,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
     private var mPosition: MutableLiveData<Int> = MutableLiveData()
     private var isPlaying: MutableLiveData<Boolean> = MutableLiveData()
     private var audioListLiveData: MutableLiveData<ArrayList<Song>> = MutableLiveData()
+    private var isServiceWorking: MutableLiveData<Boolean> = MutableLiveData()
     private var musicPlayer: MediaPlayer = MediaPlayer()
     private lateinit var thumbnail: Bitmap
 
@@ -100,13 +101,13 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         return mPosition
     }
 
-    fun sendDataToActivity(action: Int) {
-        val intent = Intent("send_data_to_activity")
-        val bundle = Bundle()
-        bundle.putInt("action", action)
-        intent.putExtras(bundle)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-    }
+//    fun sendDataToActivity(action: Int) {
+//        val intent = Intent("send_data_to_activity")
+//        val bundle = Bundle()
+//        bundle.putInt("action", action)
+//        intent.putExtras(bundle)
+//        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+//    }
 
     private fun createNotificationChannel() {
         val serviceChannel = NotificationChannel(
@@ -212,6 +213,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
                 stopForeground(true)
                 musicPlayer.stop()
                 musicPlayer.reset()
+                isServiceWorking.postValue(false)
             }
             ACTION_PAUSE -> {
                 pauseMusic()
@@ -228,7 +230,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         }
     }
 
-    fun playAudioOnline() {
+    fun playAudio() = GlobalScope.launch(Dispatchers.IO) {
         if (checkPositionAndList()) {
             musicPlayer.reset()
             musicPlayer.setAudioAttributes(
@@ -237,19 +239,23 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
             )
-            if(mAudioList[mPosition.value!!].thumbnail != null){
+            if (mAudioList[mPosition.value!!].thumbnail != null) {
                 val url =
                     "http://api.mp3.zing.vn/api/streaming/audio/${mAudioList[mPosition.value!!].id}/128"
                 musicPlayer.setDataSource(url)
             } else {
-                musicPlayer.setDataSource(this,mAudioList[mPosition.value!!].uri)
+                musicPlayer.setDataSource(this@MyService, mAudioList[mPosition.value!!].uri)
             }
             musicPlayer.prepareAsync()
-            musicPlayer.setOnPreparedListener(this)
+            musicPlayer.setOnPreparedListener(this@MyService)
+            isServiceWorking.postValue(true)
         }
+
     }
 
-
+    fun getStatusService() : MutableLiveData<Boolean>{
+        return isServiceWorking
+    }
     fun getStatusPlayer(): MutableLiveData<Boolean> {
         return isPlaying
     }
@@ -257,29 +263,34 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
     fun previousMusic() {
         musicPlayer.pause()
         mPosition.value = mPosition.value?.minus(1)
-        playAudioOnline()
-        sendDataToActivity(ACTION_START)
+        playAudio()
+//        sendDataToActivity(ACTION_START)
+    }
+
+    override fun onDestroy() {
+        isServiceWorking.postValue(false)
+        super.onDestroy()
     }
 
     fun nextMusic() {
         musicPlayer.pause()
         mPosition.value = mPosition.value?.plus(1)
-        playAudioOnline()
-        sendDataToActivity(ACTION_START)
+        playAudio()
+//        sendDataToActivity(ACTION_START)
     }
 
     fun pauseMusic(){
         musicPlayer.pause()
         showNotification()
-        sendDataToActivity(ACTION_PAUSE)
-        isPlaying.value = musicPlayer.isPlaying
+//        sendDataToActivity(ACTION_PAUSE)
+        isPlaying.postValue(musicPlayer.isPlaying)
     }
 
     fun resumeMusic() {
         musicPlayer.start()
         showNotification()
-        sendDataToActivity(ACTION_RESUME)
-        isPlaying.value = musicPlayer.isPlaying
+//        sendDataToActivity(ACTION_RESUME)
+        isPlaying.postValue(musicPlayer.isPlaying)
     }
 
     private fun checkPositionAndList(): Boolean {
@@ -289,8 +300,8 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
     override fun onPrepared(mp: MediaPlayer?) {
         mp?.start()
         showNotification()
-        sendDataToActivity(ACTION_START)
-        isPlaying.value = mp?.isPlaying
+//        sendDataToActivity(ACTION_START)
+        isPlaying.postValue(mp?.isPlaying)
     }
 
 }

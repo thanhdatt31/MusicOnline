@@ -8,7 +8,6 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
-import android.util.Log
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import com.example.musiconline.R
@@ -101,19 +100,26 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun seekBarSetUp() {
         binding.seekBar.progress = mService.getCurrentPosition()
-        binding.tvDuration.text =
-            Const.durationConverter((mAudioList[mPosition].duration * 1000).toLong())
-        binding.seekBar.max = mAudioList[mPosition].duration * 1000
-        binding.seekBar.setOnSeekBarChangeListener(@SuppressLint("AppCompatCustomView")
-        object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(
-                seekBar: SeekBar?,
-                progress: Int,
-                fromUser: Boolean
-            ) {
-                if (fromUser) {
-                    sendProgress(progress)
-                    binding.tvCurrentTime.text = Const.durationConverter(progress.toLong())
+        if (mAudioList[mPosition].duration.toString().length < 4) {
+            binding.tvDuration.text =
+                Const.durationConverter((mAudioList[mPosition].duration * 1000).toLong())
+            binding.seekBar.max = mAudioList[mPosition].duration * 1000
+        } else {
+            binding.tvDuration.text =
+                Const.durationConverter((mAudioList[mPosition].duration).toLong())
+            binding.seekBar.max = mAudioList[mPosition].duration
+        }
+        binding.seekBar.setOnSeekBarChangeListener(
+            @SuppressLint("AppCompatCustomView")
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    if (fromUser) {
+                        sendProgress(progress)
+                        binding.tvCurrentTime.text = Const.durationConverter(progress.toLong())
                 }
             }
 

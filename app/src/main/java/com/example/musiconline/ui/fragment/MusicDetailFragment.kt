@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.example.musiconline.databinding.FragmentMusicDetailBinding
 import com.example.musiconline.model.Song
 import com.example.musiconline.service.MyService
+import com.example.musiconline.ulti.Const
 import com.example.musiconline.ulti.Const.ACTION_START
 
 
@@ -50,11 +50,11 @@ class MusicDetailFragment : Fragment() {
                 mService.getListAudioLiveData().observe(this@MusicDetailFragment,{
                     mAudioList = it
                     handleLayout(mAudioList, mService.getPosition().value!!)
-                    mService.sendDataToActivity(ACTION_START)
+//                    mService.sendDataToActivity(ACTION_START)
                 })
                 mService.getPosition().observe(this@MusicDetailFragment,{
                     handleLayout(mAudioList, it)
-                    mService.sendDataToActivity(ACTION_START)
+//                    mService.sendDataToActivity(ACTION_START)
                 })
             }
 
@@ -69,11 +69,18 @@ class MusicDetailFragment : Fragment() {
     }
 
     private fun handleLayout(mAudioList: ArrayList<Song>, mPosition: Int) {
-        Glide.with(requireContext())
-            .load(mAudioList[mPosition].thumbnail)
-            .centerCrop()
-            .into(binding.imgAlbumFull)
-        binding.tvSongTitleFull.text = mAudioList[mPosition].title
-        binding.tvArtistTitleFull.text = mAudioList[mPosition].artists_names
+        val song: Song = mAudioList[mPosition]
+        if (song.thumbnail != null) {
+            Glide.with(requireContext())
+                .load(song.thumbnail)
+                .centerCrop()
+                .into(binding.imgAlbumFull)
+        } else {
+            Glide.with(requireContext())
+                .load(Const.getAlbumBitmap(requireContext(), song.uri))
+                .into(binding.imgAlbumFull)
+        }
+        binding.tvSongTitleFull.text = song.title
+        binding.tvArtistTitleFull.text = song.artists_names
     }
 }
