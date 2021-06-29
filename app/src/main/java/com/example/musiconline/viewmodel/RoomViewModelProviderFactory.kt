@@ -6,14 +6,14 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.musiconline.repository.MainRepository
 import com.example.musiconline.repository.RoomRepository
 
-class ViewModelProviderFactory(
+class RoomViewModelProviderFactory(
     val app: Application,
-    val mainRepository: MainRepository
+    private val roomRepository: RoomRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            return MainViewModel(app, mainRepository) as T
+        if (modelClass.isAssignableFrom(RoomViewModel::class.java)) {
+            return RoomViewModel(app, roomRepository) as T
         }
         throw IllegalArgumentException("Unknown class name")
     }

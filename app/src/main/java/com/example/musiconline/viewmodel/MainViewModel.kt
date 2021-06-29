@@ -88,7 +88,7 @@ class MainViewModel(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     id
                 )
-                val song = Song(artist, null, duration, null, null, null, name, contentUri)
+                val song = Song(artist, null, duration, null, null, null, name, contentUri,null)
                 listOfflineSong.add(song)
             }
             offlineSongData.postValue(listOfflineSong)

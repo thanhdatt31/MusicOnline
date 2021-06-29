@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import com.example.musiconline.R
 import com.example.musiconline.databinding.ActivityMainBinding
+import com.example.musiconline.ui.fragment.FavoriteFragment
 import com.example.musiconline.ui.fragment.HomeFragment
 import com.example.musiconline.ui.fragment.OfflineMusicFragment
 import com.google.android.material.navigation.NavigationView
@@ -55,6 +56,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.relativelayout, OfflineMusicFragment()).commit()
                 toolbar.title = "Music Offline"
+            }
+            R.id.favorite -> {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.relativelayout, FavoriteFragment()).commit()
+                toolbar.title = "Music Favorite"
             }
             R.id.nav_aboutUs -> {
                 Toast.makeText(this, "About Us", Toast.LENGTH_SHORT).show()

@@ -15,6 +15,7 @@ import android.os.Binder
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -101,13 +102,6 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         return mPosition
     }
 
-//    fun sendDataToActivity(action: Int) {
-//        val intent = Intent("send_data_to_activity")
-//        val bundle = Bundle()
-//        bundle.putInt("action", action)
-//        intent.putExtras(bundle)
-//        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-//    }
 
     private fun createNotificationChannel() {
         val serviceChannel = NotificationChannel(
@@ -264,7 +258,6 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         musicPlayer.pause()
         mPosition.value = mPosition.value?.minus(1)
         playAudio()
-//        sendDataToActivity(ACTION_START)
     }
 
     override fun onDestroy() {
@@ -276,31 +269,27 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         musicPlayer.pause()
         mPosition.value = mPosition.value?.plus(1)
         playAudio()
-//        sendDataToActivity(ACTION_START)
     }
 
     fun pauseMusic(){
         musicPlayer.pause()
         showNotification()
-//        sendDataToActivity(ACTION_PAUSE)
         isPlaying.postValue(musicPlayer.isPlaying)
     }
 
     fun resumeMusic() {
         musicPlayer.start()
         showNotification()
-//        sendDataToActivity(ACTION_RESUME)
         isPlaying.postValue(musicPlayer.isPlaying)
     }
 
     private fun checkPositionAndList(): Boolean {
-        return mPosition.value != 0 && mAudioList.size != 0
+        return mAudioList.size != 0
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
         mp?.start()
         showNotification()
-//        sendDataToActivity(ACTION_START)
         isPlaying.postValue(mp?.isPlaying)
     }
 

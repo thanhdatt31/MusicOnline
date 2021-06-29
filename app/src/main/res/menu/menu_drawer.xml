@@ -12,6 +12,10 @@
             android:id="@+id/music_offline"
             android:icon="@drawable/ic_baseline_image_24"
             android:title="Music Offline" />
+        <item
+            android:id="@+id/favorite"
+            android:icon="@drawable/ic_baseline_favorite_24"
+            android:title="Music Favorite" />
 
     </group>
 

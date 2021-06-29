@@ -9,13 +9,18 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.musiconline.R
 import com.example.musiconline.adapter.ViewpagerAdapter
 import com.example.musiconline.databinding.ActivityPlayerBinding
 import com.example.musiconline.model.Song
+import com.example.musiconline.repository.RoomRepository
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ulti.Const
+import com.example.musiconline.viewmodel.RoomViewModel
+import com.example.musiconline.viewmodel.RoomViewModelProviderFactory
 
 class PlayerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPlayerBinding
@@ -25,9 +30,11 @@ class PlayerActivity : AppCompatActivity() {
     private var mAudioList: ArrayList<Song> = arrayListOf()
     private var mPosition = 0
     private var handler = Handler()
+    private lateinit var viewModel: RoomViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initService()
+        setupViewModel()
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.viewPager.apply {
@@ -39,6 +46,20 @@ class PlayerActivity : AppCompatActivity() {
 
     }
 
+    private fun setupViewModel() {
+        val repository = RoomRepository()
+        val factory = RoomViewModelProviderFactory(application, repository)
+        viewModel = ViewModelProvider(this, factory).get(RoomViewModel::class.java)
+        getFavoriteListSongData()
+    }
+
+    private fun getFavoriteListSongData() {
+        viewModel.getFavoriteListSong(this).observe(this, {
+            //
+            
+        })
+    }
+
     private fun initService() {
         connection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -47,7 +68,7 @@ class PlayerActivity : AppCompatActivity() {
                 mAudioList = mService.getListAudioLiveData().value!!
                 mPosition = mService.getPosition().value!!
                 handleLayout(mAudioList, mPosition)
-                mService.getListAudioLiveData().observe(this@PlayerActivity,{
+                mService.getListAudioLiveData().observe(this@PlayerActivity, {
                     handler.removeCallbacks(runnable)
                     mAudioList = it
                     mPosition = mService.getPosition().value!!
@@ -90,6 +111,11 @@ class PlayerActivity : AppCompatActivity() {
         binding.btnDown.setOnClickListener {
             finish()
         }
+        binding.btnFavor.setOnClickListener {
+            viewModel.insertSong(this, mAudioList[mPosition])
+            Toast.makeText(this, "Vip", Toast.LENGTH_SHORT).show()
+        }
+
     }
 
     private fun updateSeekBar() {
