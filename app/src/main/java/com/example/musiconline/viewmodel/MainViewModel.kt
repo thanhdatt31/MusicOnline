@@ -5,10 +5,12 @@ import android.content.ContentUris
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.musiconline.model.RecommendSong
+import com.example.musiconline.model.SearchResult
 import com.example.musiconline.model.Song
 import com.example.musiconline.model.TopSong
 import com.example.musiconline.repository.MainRepository
@@ -24,9 +26,10 @@ class MainViewModel(
     val topSongData: MutableLiveData<Resource<TopSong>> = MutableLiveData()
     val recommendSongData: MutableLiveData<Resource<RecommendSong>> = MutableLiveData()
     val offlineSongData: MutableLiveData<ArrayList<Song>> = MutableLiveData()
+    val searchResultData: MutableLiveData<Resource<SearchResult>> = MutableLiveData()
     var listOfflineSong: ArrayList<Song> = arrayListOf()
     var id: String = "ZOA80W7W"
-
+    var query : String = ""
     init {
         getTopSong()
         getRecommendSong()
@@ -35,6 +38,16 @@ class MainViewModel(
 
     private fun getRecommendSong() = viewModelScope.launch {
         fetchMusicRecommend()
+    }
+
+    fun getSearchResult() = viewModelScope.launch {
+        fetchSearchResult()
+    }
+
+    private suspend fun fetchSearchResult() {
+        searchResultData.postValue(Resource.Loading())
+        val response = mainRepository.getSearchResult(query)
+        searchResultData.postValue(handleSearchResult(response))
     }
 
     private suspend fun fetchMusicRecommend() {
@@ -104,6 +117,15 @@ class MainViewModel(
 
 
     private fun handleRecommendSongResponse(response: Response<RecommendSong>): Resource<RecommendSong> {
+        if (response.isSuccessful) {
+            response.body()?.let { resultResponse ->
+                return Resource.Success(resultResponse)
+            }
+        }
+        return Resource.Error(response.message())
+    }
+
+    private fun handleSearchResult(response: Response<SearchResult>): Resource<SearchResult> {
         if (response.isSuccessful) {
             response.body()?.let { resultResponse ->
                 return Resource.Success(resultResponse)

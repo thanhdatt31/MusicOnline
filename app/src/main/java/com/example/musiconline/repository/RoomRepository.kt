@@ -20,14 +20,18 @@ class RoomRepository {
             songDatabase!!.songDAO().insertSong(song)
         }
     }
-
-    fun deleteSong(context: Context, song: Song) {
+    fun deleteSongByUri(context: Context ,uri : String) {
         songDatabase = initializeDB(context)
         CoroutineScope(Dispatchers.IO).launch {
-            songDatabase!!.songDAO().deleteSong(song)
+            songDatabase!!.songDAO().deleteSpecificSongByUri(uri)
         }
     }
-
+    fun deleteSong(context: Context, id : String) {
+        songDatabase = initializeDB(context)
+        CoroutineScope(Dispatchers.IO).launch {
+            songDatabase!!.songDAO().deleteSpecificSong(id)
+        }
+    }
 
     suspend fun getFavoriteListSong(context: Context): List<Song> {
         songDatabase = initializeDB(context)

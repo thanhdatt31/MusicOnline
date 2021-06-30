@@ -16,9 +16,9 @@ object Const {
     const val ACTION_PAUSE = 1
     const val ACTION_RESUME = 2
     const val ACTION_CLEAR = 3
-    const val ACTION_START = 4
     const val ACTION_NEXT = 5
     const val ACTION_PREVIOUS = 6
+    const val REFRESH_LIST = "REFRESH_LIST"
     fun durationConverter(duration: Long): String {
         return String.format(
             "%02d:%02d",

@@ -25,4 +25,11 @@ class RoomViewModel(
         return liveData
     }
 
+    fun deleteSong(context: Context, id : String) {
+        roomRepository.deleteSong(context, id)
+    }
+
+    fun deleteSpecificSongByUri(context: Context,uri : String){
+        roomRepository.deleteSongByUri(context,uri)
+    }
 }

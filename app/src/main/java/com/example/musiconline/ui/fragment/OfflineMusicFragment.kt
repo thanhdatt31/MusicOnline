@@ -113,7 +113,7 @@ class OfflineMusicFragment : Fragment() {
                 .into(binding.imgAlbum)
         } else {
             Glide.with(requireContext())
-                .load(getAlbumBitmap(requireContext(), song.uri))
+                .load(getAlbumBitmap(requireContext(), song.uri!!))
                 .into(binding.imgAlbum)
         }
         binding.btnNextMini.setOnClickListener {

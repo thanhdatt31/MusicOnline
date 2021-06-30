@@ -9,16 +9,15 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
+import com.example.musiconline.model.ResultSong
 import com.example.musiconline.model.Song
-import com.example.musiconline.ulti.Const.durationConverter
-import com.example.musiconline.ulti.Const.getAlbumBitmap
+import com.example.musiconline.ulti.Const
 import java.io.Serializable
 
-class SongAdapter : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
+class ResultSongAdapter: RecyclerView.Adapter<ResultSongAdapter.ViewHolder>() {
     private lateinit var context: Context
-    private var songList: ArrayList<Song> = arrayListOf()
-    var listener: OnItemClickListener? = null
-
+    private var songList: ArrayList<ResultSong> = arrayListOf()
+    var listener: ResultSongAdapter.OnItemClickListener? = null
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), Serializable {
         var imgThumb: ImageView = itemView.findViewById(R.id.img_thumb)
         var title: TextView = itemView.findViewById(R.id.tv_title)
@@ -33,30 +32,16 @@ class SongAdapter : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val song: Song = songList[position]
-        holder.title.text = song.title
-        if (song.thumbnail != null) {
-            Glide.with(holder.itemView.context)
-                .load(song.thumbnail)
-                .centerCrop()
-                .into(holder.imgThumb)
-        } else {
-            if(song.uri != null){
-                Glide.with(holder.itemView.context)
-                    .load(getAlbumBitmap(holder.itemView.context, song.uri))
-                    .centerCrop()
-                    .into(holder.imgThumb)
-            }
-
-        }
-        if (song.duration.toString().length < 4) {
-            holder.duration.text = durationConverter((song.duration * 1000).toLong())
-        } else {
-            holder.duration.text = durationConverter((song.duration).toLong())
-        }
-
-        holder.itemView.setOnClickListener {
-            listener!!.onClicked(position)
+        val resultSong = songList[position]
+        holder.title.text = resultSong.name
+        holder.duration.text = Const.durationConverter((resultSong.duration.toInt() * 1000).toLong())
+        val thumb = "https://photo-resize-zmp3.zadn.vn/w320_r1x1_jpeg/${resultSong.thumb}"
+        Glide.with(holder.itemView.context)
+            .load(thumb)
+            .centerCrop()
+            .into(holder.imgThumb)
+        holder.itemView.setOnClickListener{
+            listener!!.onClicked(resultSong)
         }
     }
 
@@ -64,13 +49,12 @@ class SongAdapter : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
         return songList.size
     }
 
-    fun setData(data: ArrayList<Song>) {
-        this.songList = data
+    fun setData(data : ArrayList<ResultSong>){
+        songList = data
         notifyDataSetChanged()
     }
-
     interface OnItemClickListener {
-        fun onClicked(position: Int)
+        fun onClicked(resultSong: ResultSong)
     }
 
     fun setOnClickListener(listener1: OnItemClickListener) {

@@ -13,4 +13,5 @@ interface API {
 
     @GET("recommend?type=audio")
     suspend fun fetchMusicRecommend(@Query("id") id: String): Response<RecommendSong>
+
 }

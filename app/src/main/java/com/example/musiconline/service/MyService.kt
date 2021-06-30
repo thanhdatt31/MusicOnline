@@ -12,15 +12,13 @@ import android.graphics.Bitmap
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Binder
-import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
+import com.example.musiconline.model.ResultSong
 import com.example.musiconline.model.Song
 import com.example.musiconline.ui.MainActivity
 import com.example.musiconline.ulti.Const.ACTION_CLEAR
@@ -28,7 +26,6 @@ import com.example.musiconline.ulti.Const.ACTION_NEXT
 import com.example.musiconline.ulti.Const.ACTION_PAUSE
 import com.example.musiconline.ulti.Const.ACTION_PREVIOUS
 import com.example.musiconline.ulti.Const.ACTION_RESUME
-import com.example.musiconline.ulti.Const.ACTION_START
 import com.example.musiconline.ulti.Const.CHANNEL_ID
 import com.example.musiconline.ulti.Const.MUSIC_NOTIFICATION_ID
 import com.example.musiconline.ulti.Const.SEND_ACTION_FROM_NOTIFICATION
@@ -44,6 +41,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
     private var audioListLiveData: MutableLiveData<ArrayList<Song>> = MutableLiveData()
     private var isServiceWorking: MutableLiveData<Boolean> = MutableLiveData()
     private var musicPlayer: MediaPlayer = MediaPlayer()
+    var resultSearchSong: MutableLiveData<ResultSong> = MutableLiveData()
     private lateinit var thumbnail: Bitmap
 
     inner class BinderAudio : Binder() {
@@ -66,7 +64,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
             audioListLiveData.value = mAudioList
             mPosition.value = position
         }
-
+        resultSearchSong.value = null
     }
 
     fun getListAudioLiveData(): MutableLiveData<ArrayList<Song>> {
@@ -122,8 +120,6 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         val notificationBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(mAudioList[mPosition.value!!].title)
-                .setContentText(mAudioList[mPosition.value!!].artists_names)
                 .setContentIntent(pendingIntent)
                 .setStyle(
                     androidx.media.app.NotificationCompat.MediaStyle()
@@ -138,6 +134,13 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
                         ACTION_PREVIOUS
                     )
                 )
+        if (resultSearchSong.value == null) {
+            notificationBuilder.setContentTitle(mAudioList[mPosition.value!!].title)
+                .setContentText(mAudioList[mPosition.value!!].artists_names)
+        } else {
+            notificationBuilder.setContentTitle(resultSearchSong.value!!.name)
+                .setContentText(resultSearchSong.value!!.artist)
+        }
         if (musicPlayer.isPlaying) {
             notificationBuilder
                 .addAction(
@@ -238,7 +241,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
                     "http://api.mp3.zing.vn/api/streaming/audio/${mAudioList[mPosition.value!!].id}/128"
                 musicPlayer.setDataSource(url)
             } else {
-                musicPlayer.setDataSource(this@MyService, mAudioList[mPosition.value!!].uri)
+                musicPlayer.setDataSource(this@MyService, mAudioList[mPosition.value!!].uri!!)
             }
             musicPlayer.prepareAsync()
             musicPlayer.setOnPreparedListener(this@MyService)
@@ -247,9 +250,32 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
 
     }
 
-    fun getStatusService() : MutableLiveData<Boolean>{
+    fun playAudioOnline(resultSong: ResultSong) {
+        musicPlayer.reset()
+        musicPlayer.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+        )
+        val url =
+            "http://api.mp3.zing.vn/api/streaming/audio/${resultSong.id}}/128"
+        musicPlayer.setDataSource(url)
+        musicPlayer.prepare()
+        musicPlayer.start()
+        isServiceWorking.postValue(true)
+        isPlaying.postValue(musicPlayer.isPlaying)
+        showNotification()
+    }
+
+    fun getStatusService(): MutableLiveData<Boolean> {
         return isServiceWorking
     }
+
+    fun setDataOnline(data: ResultSong) {
+        this.resultSearchSong.value = data
+    }
+
     fun getStatusPlayer(): MutableLiveData<Boolean> {
         return isPlaying
     }
@@ -264,6 +290,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         isServiceWorking.postValue(false)
         super.onDestroy()
     }
+
 
     fun nextMusic() {
         musicPlayer.pause()

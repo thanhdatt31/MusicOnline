@@ -12,6 +12,7 @@ import com.example.musiconline.databinding.ActivityMainBinding
 import com.example.musiconline.ui.fragment.FavoriteFragment
 import com.example.musiconline.ui.fragment.HomeFragment
 import com.example.musiconline.ui.fragment.OfflineMusicFragment
+import com.example.musiconline.ui.fragment.SearchFragment
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
@@ -38,10 +39,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         supportFragmentManager.beginTransaction()
             .replace(R.id.relativelayout, homeFragment).commit()
         toolbar.title = "Music Online"
-
-
-//        val homeFragment = HomeFragment()
-//        openFragment(homeFragment)
     }
 
 
@@ -63,7 +60,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 toolbar.title = "Music Favorite"
             }
             R.id.nav_aboutUs -> {
-                Toast.makeText(this, "About Us", Toast.LENGTH_SHORT).show()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.relativelayout, SearchFragment()).commit()
+                toolbar.title = "Search"
             }
 
             R.id.nav_rateMe -> {

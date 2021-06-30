@@ -15,7 +15,6 @@ import com.example.musiconline.databinding.FragmentMusicDetailBinding
 import com.example.musiconline.model.Song
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ulti.Const
-import com.example.musiconline.ulti.Const.ACTION_START
 
 
 class MusicDetailFragment : Fragment() {
@@ -70,14 +69,15 @@ class MusicDetailFragment : Fragment() {
 
     private fun handleLayout(mAudioList: ArrayList<Song>, mPosition: Int) {
         val song: Song = mAudioList[mPosition]
+        val oldThumb = song.thumbnail
+        val newThumb = oldThumb?.replace("w94","w320")
         if (song.thumbnail != null) {
             Glide.with(requireContext())
-                .load(song.thumbnail)
-                .centerCrop()
+                .load(newThumb)
                 .into(binding.imgAlbumFull)
         } else {
             Glide.with(requireContext())
-                .load(Const.getAlbumBitmap(requireContext(), song.uri))
+                .load(Const.getAlbumBitmap(requireContext(), song.uri!!))
                 .into(binding.imgAlbumFull)
         }
         binding.tvSongTitleFull.text = song.title

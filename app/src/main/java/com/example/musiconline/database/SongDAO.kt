@@ -15,4 +15,10 @@ interface SongDAO {
 
     @Query("SELECT * FROM song ORDER BY favor_id DESC")
     suspend fun getAllSong(): List<Song>
+
+    @Query("DELETE FROM song WHERE id =:id")
+    suspend fun deleteSpecificSong(id: String)
+
+    @Query("DELETE FROM song WHERE uri =:uri")
+    suspend fun deleteSpecificSongByUri(uri: String)
 }

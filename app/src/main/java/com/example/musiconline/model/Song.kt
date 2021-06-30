@@ -35,7 +35,7 @@ data class Song(
     @SerializedName("title")
     @Expose
     val title: String,
-    val uri: Uri,
+    val uri: Uri?,
     @PrimaryKey(autoGenerate = true)
     var favor_id: Int?
 

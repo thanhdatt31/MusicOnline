@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
@@ -21,9 +20,6 @@ import com.example.musiconline.repository.MainRepository
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ui.PlayerActivity
 import com.example.musiconline.ulti.Const
-import com.example.musiconline.ulti.Const.ACTION_PAUSE
-import com.example.musiconline.ulti.Const.ACTION_RESUME
-import com.example.musiconline.ulti.Const.ACTION_START
 import com.example.musiconline.ulti.Resource
 import com.example.musiconline.viewmodel.MainViewModel
 import com.example.musiconline.viewmodel.ViewModelProviderFactory
@@ -37,6 +33,7 @@ class HomeFragment : Fragment() {
     private lateinit var mService: MyService
     private var mBound: Boolean = false
     private var mPosition = 0
+    private lateinit var song: Song
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as MyService.BinderAudio
@@ -46,8 +43,23 @@ class HomeFragment : Fragment() {
             })
             mAudioList = mService.getListAudio()
             mService.getStatusPlayer().observe(viewLifecycleOwner, {
-                val song: Song = mService.getPosition().value!!.let { it1 ->
-                    mService.getListAudioLiveData().value!![it1]
+                song = if (mService.resultSearchSong.value == null) {
+                    mService.getPosition().value!!.let { it1 ->
+                        mService.getListAudioLiveData().value!![it1]
+                    }
+                } else {
+                    val resultSong = mService.resultSearchSong.value!!
+                    Song(
+                        resultSong.artist,
+                        null,
+                        resultSong.duration.toInt(),
+                        resultSong.id,
+                        null,
+                        resultSong.thumb,
+                        resultSong.name,
+                        null,
+                        null
+                    )
                 }
                 when (it) {
                     true -> {
@@ -97,12 +109,19 @@ class HomeFragment : Fragment() {
         binding.tvSongTitle.text = song.title
         binding.tvArtistTitle.text = song.artists_names
         if (song.thumbnail != null) {
-            Glide.with(requireContext())
-                .load(song.thumbnail)
-                .into(binding.imgAlbum)
+            if (song.thumbnail.contains("zmp3")) {
+                Glide.with(requireContext())
+                    .load(song.thumbnail)
+                    .into(binding.imgAlbum)
+            } else {
+                val thumb = "https://photo-resize-zmp3.zadn.vn/w94_r1x1_jpeg/${song.thumbnail}"
+                Glide.with(requireContext())
+                    .load(thumb)
+                    .into(binding.imgAlbum)
+            }
         } else {
             Glide.with(requireContext())
-                .load(Const.getAlbumBitmap(requireContext(), song.uri))
+                .load(Const.getAlbumBitmap(requireContext(), song.uri!!))
                 .into(binding.imgAlbum)
         }
         binding.btnNextMini.setOnClickListener {

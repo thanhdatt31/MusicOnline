@@ -1,9 +1,6 @@
 package com.example.musiconline.ui.fragment
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.os.Bundle
 import android.os.IBinder
 import android.view.LayoutInflater
@@ -11,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
@@ -21,6 +19,7 @@ import com.example.musiconline.repository.RoomRepository
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ui.PlayerActivity
 import com.example.musiconline.ulti.Const
+import com.example.musiconline.ulti.Const.REFRESH_LIST
 import com.example.musiconline.viewmodel.RoomViewModel
 import com.example.musiconline.viewmodel.RoomViewModelProviderFactory
 
@@ -35,6 +34,7 @@ class FavoriteFragment : Fragment() {
     private lateinit var mService: MyService
     private var mPosition = 0
     private var mListFavoriteSong: List<Song>? = arrayListOf()
+    private var playerActivity = PlayerActivity()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -47,6 +47,17 @@ class FavoriteFragment : Fragment() {
         super.onCreate(savedInstanceState)
         initService()
         setupViewModel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        LocalBroadcastManager.getInstance(requireContext())
+            .registerReceiver(broadcastReceiver, IntentFilter(REFRESH_LIST))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(broadcastReceiver)
     }
 
     private fun setupViewModel() {
@@ -129,7 +140,7 @@ class FavoriteFragment : Fragment() {
                 .into(binding.imgAlbum)
         } else {
             Glide.with(requireContext())
-                .load(Const.getAlbumBitmap(requireContext(), song.uri))
+                .load(Const.getAlbumBitmap(requireContext(), song.uri!!))
                 .into(binding.imgAlbum)
         }
         binding.btnNextMini.setOnClickListener {
@@ -158,9 +169,15 @@ class FavoriteFragment : Fragment() {
         override fun onClicked(position: Int) {
             mPosition = position
             mService.setListAudioAndPosition(mListFavoriteSong as ArrayList<Song>, position)
-//            mListOfflineSong?.let { mService.setListAudioAndPosition(it, position) }
             mService.playAudio()
         }
 
+    }
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (isAdded) {
+                getFavoriteListSongData()
+            }
+        }
     }
 }
