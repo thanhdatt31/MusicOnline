@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
-import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.widget.SeekBar
@@ -68,19 +67,42 @@ class PlayerActivity : AppCompatActivity() {
             when (it) {
                 false -> {
                     binding.btnDownload.setImageResource(R.drawable.ic_baseline_arrow_circle_down_24_white)
-                    binding.btnDownload.setOnClickListener {
-                        val url =
-                            "http://api.mp3.zing.vn/api/streaming/audio/${mAudioList[mPosition].id}/128"
-                        val request = DownloadManager.Request(Uri.parse(url))
-                        val title = URLUtil.guessFileName(url, null, null)
-                        val cookie = CookieManager.getInstance().getCookie(title)
-                        request.addRequestHeader("cookie", cookie)
-                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,"${mAudioList[mPosition].title}.mp3")
-                        val downloadManager =
-                           getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                        val idDownload = downloadManager.enqueue(request)
+                    if (mService.resultSearchSong.value == null) {
+                        binding.btnDownload.setOnClickListener {
+                            val url =
+                                "http://api.mp3.zing.vn/api/streaming/audio/${mService.getListAudioLiveData().value!![mService.getPosition().value!!].id}/128"
+                            val request = DownloadManager.Request(Uri.parse(url))
+                            val title = URLUtil.guessFileName(url, null, null)
+                            val cookie = CookieManager.getInstance().getCookie(title)
+                            request.addRequestHeader("cookie", cookie)
+                            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                            request.setDestinationInExternalPublicDir(
+                                Environment.DIRECTORY_DOWNLOADS,
+                                "${mService.getListAudioLiveData().value!![mService.getPosition().value!!].title}.mp3"
+                            )
+                            val downloadManager =
+                                getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                            val idDownload = downloadManager.enqueue(request)
 
+                        }
+                    } else {
+                        binding.btnDownload.setOnClickListener {
+                            val url =
+                                "http://api.mp3.zing.vn/api/streaming/audio/${mService.resultSearchSong.value!!.id}/128"
+                            val request =
+                                android.app.DownloadManager.Request(android.net.Uri.parse(url))
+                            val title = android.webkit.URLUtil.guessFileName(url, null, null)
+                            val cookie = android.webkit.CookieManager.getInstance().getCookie(title)
+                            request.addRequestHeader("cookie", cookie)
+                            request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                            request.setDestinationInExternalPublicDir(
+                                android.os.Environment.DIRECTORY_DOWNLOADS,
+                                "${mService.resultSearchSong.value!!.name}.mp3"
+                            )
+                            val downloadManager =
+                                getSystemService(android.content.Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
+                            val idDownload = downloadManager.enqueue(request)
+                        }
                     }
                 }
                 true -> {
@@ -243,14 +265,20 @@ class PlayerActivity : AppCompatActivity() {
                     mAudioList = it
                     mPosition = mService.getPosition().value!!
                     handleLayout()
-                    if (it[mPosition].thumbnail != null) {
-                        isOfflineSong.postValue(false)
-                    } else {
-                        isOfflineSong.postValue(true)
-                    }
                 })
                 mService.getPosition().observe(this@PlayerActivity, {
                     seekBarSetUp()
+                })
+                mService.resultSearchSong.observe(this@PlayerActivity, {
+                    if (it == null) {
+                        if (mAudioList[mPosition].thumbnail != null) {
+                            isOfflineSong.postValue(false)
+                        } else {
+                            isOfflineSong.postValue(true)
+                        }
+                    } else {
+                        isOfflineSong.postValue(false)
+                    }
                 })
             }
 

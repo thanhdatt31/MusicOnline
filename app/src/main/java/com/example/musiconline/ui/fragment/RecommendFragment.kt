@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.musiconline.adapter.RecommendAdapter
 import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentRecommendBinding
 import com.example.musiconline.model.Song
@@ -32,7 +33,7 @@ class RecommendFragment : Fragment() {
     private var mAudioList: ArrayList<Song> = arrayListOf()
     private var mNewAudioList: ArrayList<Song> = arrayListOf()
     private var mPosition = 0
-    private var songAdapter = SongAdapter()
+    private var songAdapter = RecommendAdapter()
     private var mListOfflineSong: ArrayList<Song>? = arrayListOf()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -144,7 +145,7 @@ class RecommendFragment : Fragment() {
         })
     }
 
-    private val onClicked = object : SongAdapter.OnItemClickListener {
+    private val onClicked = object : RecommendAdapter.OnItemClickListener {
         override fun onClicked(position: Int) {
             mPosition = position
             if (mListOfflineSong.isNullOrEmpty()) {

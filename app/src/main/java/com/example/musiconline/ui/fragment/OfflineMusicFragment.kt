@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
+import com.example.musiconline.adapter.RecommendAdapter
 import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentOfflineMusicBinding
 import com.example.musiconline.model.Song
@@ -31,7 +32,7 @@ class OfflineMusicFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var viewModel: MainViewModel
     private var mListOfflineSong: ArrayList<Song>? = arrayListOf()
-    private var songAdapter = SongAdapter()
+    private var songAdapter = RecommendAdapter()
     private lateinit var connection: ServiceConnection
     private var mBound: Boolean = false
     private lateinit var mService: MyService
@@ -177,7 +178,7 @@ class OfflineMusicFragment : Fragment() {
         }
     }
 
-    private val onClicked = object : SongAdapter.OnItemClickListener {
+    private val onClicked = object : RecommendAdapter.OnItemClickListener {
         override fun onClicked(position: Int) {
             mPosition = position
             mListOfflineSong?.let { mService.setListAudioAndPosition(it, position) }

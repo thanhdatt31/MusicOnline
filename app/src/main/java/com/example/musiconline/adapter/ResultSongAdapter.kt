@@ -22,11 +22,12 @@ class ResultSongAdapter: RecyclerView.Adapter<ResultSongAdapter.ViewHolder>() {
         var imgThumb: ImageView = itemView.findViewById(R.id.img_thumb)
         var title: TextView = itemView.findViewById(R.id.tv_title)
         var duration: TextView = itemView.findViewById(R.id.tv_duration)
+        var artist: TextView = itemView.findViewById(R.id.tv_artist)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view: View = inflater.inflate(R.layout.item_audio, parent, false)
+        val view: View = inflater.inflate(R.layout.item_audio_recommend, parent, false)
         context = parent.context
         return ViewHolder(view)
     }
@@ -34,6 +35,7 @@ class ResultSongAdapter: RecyclerView.Adapter<ResultSongAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val resultSong = songList[position]
         holder.title.text = resultSong.name
+        holder.artist.text = resultSong.artist
         holder.duration.text = Const.durationConverter((resultSong.duration.toInt() * 1000).toLong())
         val thumb = "https://photo-resize-zmp3.zadn.vn/w320_r1x1_jpeg/${resultSong.thumb}"
         Glide.with(holder.itemView.context)

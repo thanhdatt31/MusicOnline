@@ -4,15 +4,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/black"
     tools:context=".ui.fragment.HomeFragment">
+
+    <View
+        android:id="@+id/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="20dp"
+        android:background="@drawable/background_home" />
 
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/view_mini"/>
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toBottomOf="@id/background"
+        app:layout_constraintLeft_toLeftOf="@id/background"
+        app:layout_constraintRight_toRightOf="@id/background"
+        app:layout_constraintTop_toTopOf="@id/background" />
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/view_mini"
         android:layout_width="match_parent"
