@@ -4,11 +4,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Binder
@@ -18,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
+import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.model.ResultSong
 import com.example.musiconline.model.Song
 import com.example.musiconline.ui.MainActivity
@@ -28,12 +27,15 @@ import com.example.musiconline.ulti.Const.ACTION_PREVIOUS
 import com.example.musiconline.ulti.Const.ACTION_RESUME
 import com.example.musiconline.ulti.Const.CHANNEL_ID
 import com.example.musiconline.ulti.Const.MUSIC_NOTIFICATION_ID
+import com.example.musiconline.ulti.Const.REPEAT_ALL
+import com.example.musiconline.ulti.Const.REPEAT_OFF
+import com.example.musiconline.ulti.Const.REPEAT_ONE
 import com.example.musiconline.ulti.Const.SEND_ACTION_FROM_NOTIFICATION
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.example.musiconline.ulti.Const.getAlbumBitmap
+import kotlinx.coroutines.*
+import java.io.File
 
-class MyService : Service(), MediaPlayer.OnPreparedListener {
+class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     private val mIBinder = BinderAudio()
     private var mAudioList: ArrayList<Song> = arrayListOf()
     private var mPosition: MutableLiveData<Int> = MutableLiveData()
@@ -42,6 +44,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
     private var isServiceWorking: MutableLiveData<Boolean> = MutableLiveData()
     private var musicPlayer: MediaPlayer = MediaPlayer()
     var resultSearchSong: MutableLiveData<ResultSong> = MutableLiveData()
+    private var adapter = SongAdapter()
     private lateinit var thumbnail: Bitmap
 
     inner class BinderAudio : Binder() {
@@ -86,20 +89,40 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         registerReceiver(broadcastReceiver, IntentFilter("progress_from_activity"))
     }
 
-    private fun getBitmap() {
-        GlobalScope.launch(Dispatchers.IO) {
-            thumbnail = Glide.with(this@MyService)
-                .asBitmap()
-                .load(mAudioList[mPosition.value!!].thumbnail)
-                .submit()
-                .get()
-        }
-    }
 
     fun getPosition(): MutableLiveData<Int> {
         return mPosition
     }
+    private fun loadArtworkAsync(): Deferred<Bitmap> = GlobalScope.async(Dispatchers.IO) {
+        if(resultSearchSong.value == null){
+            if(mAudioList[mPosition.value!!].thumbnail != null){
+                thumbnail = Glide.with(this@MyService)
+                    .asBitmap()
+                    .load(mAudioList[mPosition.value!!].thumbnail)
+                    .submit()
+                    .get()
+            } else {
+                thumbnail = Glide.with(this@MyService)
+                    .asBitmap()
+                    .load(mAudioList[mPosition.value!!].uri?.let {
+                        getAlbumBitmap(this@MyService,
+                            it
+                        )
+                    })
+                    .submit()
+                    .get()
+            }
 
+        } else {
+            val thumb = "https://photo-resize-zmp3.zadn.vn/w94_r1x1_jpeg/${resultSearchSong.value!!.thumb}"
+            thumbnail = Glide.with(this@MyService)
+                .asBitmap()
+                .load(thumb)
+                .submit()
+                .get()
+        }
+        return@async thumbnail
+    }
 
     private fun createNotificationChannel() {
         val serviceChannel = NotificationChannel(
@@ -112,28 +135,27 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         manager.createNotificationChannel(serviceChannel)
     }
 
-    private fun showNotification() {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun showNotification() = GlobalScope.launch {
+        val loadArtworkAsync = loadArtworkAsync().await()
+        val intent = Intent(this@MyService, MainActivity::class.java)
         val pendingIntent =
-            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val mediaSessionCompat = MediaSessionCompat(this, "tag")
+            PendingIntent.getActivity(this@MyService, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val mediaSessionCompat = MediaSessionCompat(this@MyService, "tag")
         val notificationBuilder: NotificationCompat.Builder =
-            NotificationCompat.Builder(this, CHANNEL_ID)
+            NotificationCompat.Builder(this@MyService, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentIntent(pendingIntent)
                 .setStyle(
                     androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSessionCompat.sessionToken)
                 )
-//                .setLargeIcon(
-//                    thumbnail
-//                )
                 .addAction(
                     R.drawable.ic_baseline_arrow_left_24, "Back", getPendingIntent(
-                        this,
+                        this@MyService,
                         ACTION_PREVIOUS
                     )
                 )
+                .setLargeIcon(loadArtworkAsync)
         if (resultSearchSong.value == null) {
             notificationBuilder.setContentTitle(mAudioList[mPosition.value!!].title)
                 .setContentText(mAudioList[mPosition.value!!].artists_names)
@@ -145,7 +167,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
             notificationBuilder
                 .addAction(
                     R.drawable.ic_baseline_pause_24_black, "Pause", getPendingIntent(
-                        this,
+                        this@MyService,
                         ACTION_PAUSE
                     )
                 )
@@ -153,20 +175,20 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
             notificationBuilder
                 .addAction(
                     R.drawable.ic_baseline_play_arrow_24_black, "Resume", getPendingIntent(
-                        this,
+                        this@MyService,
                         ACTION_RESUME
                     )
                 )
         }
             .addAction(
                 R.drawable.ic_baseline_arrow_right_24, "Next", getPendingIntent(
-                    this,
+                    this@MyService,
                     ACTION_NEXT
                 )
             )
             .addAction(
                 R.drawable.ic_baseline_cancel_24, "Cancel", getPendingIntent(
-                    this,
+                    this@MyService,
                     ACTION_CLEAR
                 )
             )
@@ -227,7 +249,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         }
     }
 
-    fun playAudio() = GlobalScope.launch(Dispatchers.IO) {
+    fun playAudio() {
         if (checkPositionAndList()) {
             musicPlayer.reset()
             musicPlayer.setAudioAttributes(
@@ -245,6 +267,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
             }
             musicPlayer.prepareAsync()
             musicPlayer.setOnPreparedListener(this@MyService)
+            musicPlayer.setOnCompletionListener(this@MyService)
             isServiceWorking.postValue(true)
         }
 
@@ -263,6 +286,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         musicPlayer.setDataSource(url)
         musicPlayer.prepare()
         musicPlayer.start()
+        musicPlayer.setOnCompletionListener(this@MyService)
         isServiceWorking.postValue(true)
         isPlaying.postValue(musicPlayer.isPlaying)
         showNotification()
@@ -288,14 +312,23 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
 
     override fun onDestroy() {
         isServiceWorking.postValue(false)
+        musicPlayer.release()
         super.onDestroy()
     }
 
 
     fun nextMusic() {
         musicPlayer.pause()
-        mPosition.value = mPosition.value?.plus(1)
+        if (restoreShuffleMode()) {
+            mPosition.value = (0 until mAudioList.size).random()
+        } else {
+            mPosition.value = mPosition.value?.plus(1)
+            musicPlayer.stop()
+
+        }
         playAudio()
+
+
     }
 
     fun pauseMusic(){
@@ -320,4 +353,33 @@ class MyService : Service(), MediaPlayer.OnPreparedListener {
         isPlaying.postValue(mp?.isPlaying)
     }
 
+    private fun restoreShuffleMode(): Boolean {
+        val pref = applicationContext.getSharedPreferences("myPrefs", MODE_PRIVATE)
+        return pref.getBoolean("isPlayShuffle", false)
+    }
+
+    private fun restoreRepeatMode(): Int {
+        val pref = applicationContext.getSharedPreferences("myPrefs", MODE_PRIVATE)
+        return pref.getInt("isRepeat", REPEAT_OFF)
+    }
+
+    override fun onCompletion(mp: MediaPlayer?) {
+        when (restoreRepeatMode()) {
+            REPEAT_ONE -> {
+                playAudio()
+            }
+            REPEAT_OFF -> {
+                nextMusic()
+            }
+            REPEAT_ALL -> {
+                mPosition.value = mPosition.value?.plus(1)
+                if (mPosition.value!! < mAudioList.size) {
+                    playAudio()
+                } else {
+                    mPosition.value = 0
+                    playAudio()
+                }
+            }
+        }
+    }
 }

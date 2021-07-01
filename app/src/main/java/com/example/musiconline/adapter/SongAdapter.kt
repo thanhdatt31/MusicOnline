@@ -1,15 +1,19 @@
 package com.example.musiconline.adapter
 
 import android.content.Context
+import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
 import com.example.musiconline.model.Song
+import com.example.musiconline.ulti.Const
 import com.example.musiconline.ulti.Const.durationConverter
 import com.example.musiconline.ulti.Const.getAlbumBitmap
 import java.io.Serializable
@@ -41,7 +45,7 @@ class SongAdapter : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
                 .centerCrop()
                 .into(holder.imgThumb)
         } else {
-            if(song.uri != null){
+            if (song.uri != null) {
                 Glide.with(holder.itemView.context)
                     .load(getAlbumBitmap(holder.itemView.context, song.uri))
                     .centerCrop()
@@ -76,4 +80,5 @@ class SongAdapter : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
     fun setOnClickListener(listener1: OnItemClickListener) {
         listener = listener1
     }
+
 }

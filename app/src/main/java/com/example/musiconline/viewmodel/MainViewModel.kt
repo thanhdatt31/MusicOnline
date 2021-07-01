@@ -5,7 +5,6 @@ import android.content.ContentUris
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -28,15 +27,14 @@ class MainViewModel(
     val offlineSongData: MutableLiveData<ArrayList<Song>> = MutableLiveData()
     val searchResultData: MutableLiveData<Resource<SearchResult>> = MutableLiveData()
     var listOfflineSong: ArrayList<Song> = arrayListOf()
-    var id: String = "ZOA80W7W"
-    var query : String = ""
+    var id: String = ""
+    var query: String = ""
     init {
         getTopSong()
-        getRecommendSong()
         getOfflineSong()
     }
 
-    private fun getRecommendSong() = viewModelScope.launch {
+    fun getRecommendSong() = viewModelScope.launch {
         fetchMusicRecommend()
     }
 

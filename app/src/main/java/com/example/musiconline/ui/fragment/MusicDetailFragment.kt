@@ -6,12 +6,15 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.musiconline.databinding.FragmentMusicDetailBinding
+import com.example.musiconline.model.ResultSong
 import com.example.musiconline.model.Song
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ulti.Const
@@ -43,17 +46,25 @@ class MusicDetailFragment : Fragment() {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 val binder = service as MyService.BinderAudio
                 mService = binder.getService()
-                mAudioList = mService.getListAudioLiveData().value!!
-                mPosition = mService.getPosition().value!!
-                handleLayout(mAudioList, mPosition)
-                mService.getListAudioLiveData().observe(this@MusicDetailFragment,{
+                if (mService.resultSearchSong.value == null) {
+                    mAudioList = mService.getListAudioLiveData().value!!
+                    mPosition = mService.getPosition().value!!
+                    handleLayout(mAudioList, mPosition)
+                } else {
+                    val resultSong = mService.resultSearchSong.value!!
+                    handleLayoutSearchSong(resultSong)
+                }
+                mService.getListAudioLiveData().observe(this@MusicDetailFragment, {
                     mAudioList = it
                     handleLayout(mAudioList, mService.getPosition().value!!)
-//                    mService.sendDataToActivity(ACTION_START)
                 })
-                mService.getPosition().observe(this@MusicDetailFragment,{
+                mService.getPosition().observe(this@MusicDetailFragment, {
                     handleLayout(mAudioList, it)
-//                    mService.sendDataToActivity(ACTION_START)
+                })
+                mService.resultSearchSong.observe(viewLifecycleOwner, {
+                    if (it != null) {
+                        handleLayoutSearchSong(it)
+                    }
                 })
             }
 
@@ -67,10 +78,19 @@ class MusicDetailFragment : Fragment() {
         }
     }
 
+    private fun handleLayoutSearchSong(resultSong: ResultSong) {
+        val thumb = "https://photo-resize-zmp3.zadn.vn/w320_r1x1_jpeg/${resultSong.thumb}"
+        Glide.with(requireContext())
+            .load(thumb)
+            .into(binding.imgAlbumFull)
+        binding.tvSongTitleFull.text = resultSong.name
+        binding.tvArtistTitleFull.text = resultSong.artist
+    }
+
     private fun handleLayout(mAudioList: ArrayList<Song>, mPosition: Int) {
         val song: Song = mAudioList[mPosition]
         val oldThumb = song.thumbnail
-        val newThumb = oldThumb?.replace("w94","w320")
+        val newThumb = oldThumb?.replace("w94", "w320")
         if (song.thumbnail != null) {
             Glide.with(requireContext())
                 .load(newThumb)

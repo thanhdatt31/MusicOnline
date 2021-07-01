@@ -34,7 +34,7 @@ class FavoriteFragment : Fragment() {
     private lateinit var mService: MyService
     private var mPosition = 0
     private var mListFavoriteSong: List<Song>? = arrayListOf()
-    private var playerActivity = PlayerActivity()
+    private lateinit var song: Song
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -81,14 +81,30 @@ class FavoriteFragment : Fragment() {
                 val binder = service as MyService.BinderAudio
                 mService = binder.getService()
                 mService.getStatusPlayer().observe(viewLifecycleOwner, {
-                    val song: Song = mService.getPosition().value!!.let { it1 ->
-                        mService.getListAudioLiveData().value!![it1]
+                    song = if (mService.resultSearchSong.value == null) {
+                        mService.getPosition().value!!.let { it1 ->
+                            mService.getListAudioLiveData().value!![it1]
+                        }
+                    } else {
+                        val resultSong = mService.resultSearchSong.value!!
+                        Song(
+                            resultSong.artist,
+                            null,
+                            resultSong.duration.toInt(),
+                            resultSong.id,
+                            null,
+                            resultSong.thumb,
+                            resultSong.name,
+                            null,
+                            null
+                        )
                     }
                     when (it) {
                         true -> {
                             if (binding.viewMini.visibility != View.VISIBLE) {
                                 binding.viewMini.visibility = View.VISIBLE
                             }
+                            hideProgressBar()
                             binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_pause_24)
                             binding.btnPlayPause.setOnClickListener {
                                 mService.pauseMusic()
@@ -135,9 +151,16 @@ class FavoriteFragment : Fragment() {
         binding.tvSongTitle.text = song.title
         binding.tvArtistTitle.text = song.artists_names
         if (song.thumbnail != null) {
-            Glide.with(requireContext())
-                .load(song.thumbnail)
-                .into(binding.imgAlbum)
+            if (song.thumbnail.contains("zmp3")) {
+                Glide.with(requireContext())
+                    .load(song.thumbnail)
+                    .into(binding.imgAlbum)
+            } else {
+                val thumb = "https://photo-resize-zmp3.zadn.vn/w94_r1x1_jpeg/${song.thumbnail}"
+                Glide.with(requireContext())
+                    .load(thumb)
+                    .into(binding.imgAlbum)
+            }
         } else {
             Glide.with(requireContext())
                 .load(Const.getAlbumBitmap(requireContext(), song.uri!!))
@@ -145,9 +168,11 @@ class FavoriteFragment : Fragment() {
         }
         binding.btnNextMini.setOnClickListener {
             mService.nextMusic()
+            showProgressBar()
         }
-        binding.btnPreviousMini.setOnClickListener {
+        binding.btnPreviousMini.setOnClickListener{
             mService.previousMusic()
+            showProgressBar()
         }
     }
 
@@ -179,5 +204,12 @@ class FavoriteFragment : Fragment() {
                 getFavoriteListSongData()
             }
         }
+    }
+    private fun showProgressBar() {
+        binding.progress.visibility = View.VISIBLE
+    }
+
+    private fun hideProgressBar() {
+        binding.progress.visibility = View.GONE
     }
 }

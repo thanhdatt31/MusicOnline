@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
+import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.widget.SeekBar
@@ -27,15 +28,12 @@ import com.example.musiconline.repository.RoomRepository
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ulti.Const
 import com.example.musiconline.ulti.Const.REFRESH_LIST
+import com.example.musiconline.ulti.Const.REPEAT_ALL
+import com.example.musiconline.ulti.Const.REPEAT_OFF
+import com.example.musiconline.ulti.Const.REPEAT_ONE
 import com.example.musiconline.viewmodel.RoomViewModel
 import com.example.musiconline.viewmodel.RoomViewModelProviderFactory
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
-import java.net.URL
 
 class PlayerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPlayerBinding
@@ -46,9 +44,12 @@ class PlayerActivity : AppCompatActivity() {
     private var mListFavoriteSong: List<Song> = arrayListOf()
     private var mPosition = 0
     private var handler = Handler()
+    private lateinit var song: Song
     private lateinit var viewModel: RoomViewModel
     private var isOfflineSong: MutableLiveData<Boolean> = MutableLiveData()
-    var isFavorite: MutableLiveData<Boolean> = MutableLiveData()
+    private var isFavorite: MutableLiveData<Boolean> = MutableLiveData()
+    private var isClicked = false
+    private var isRepeat = REPEAT_OFF
 
     @DelicateCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,7 +96,24 @@ class PlayerActivity : AppCompatActivity() {
                 false -> {
                     binding.btnFavor.setImageResource(R.drawable.ic_baseline_favorite_24)
                     binding.btnFavor.setOnClickListener {
-                        viewModel.insertSong(this, mAudioList[mPosition])
+                        if (mService.resultSearchSong.value == null) {
+                            viewModel.insertSong(this, mAudioList[mPosition])
+                        } else {
+                            val thumb =
+                                "https://photo-resize-zmp3.zadn.vn/w94_r1x1_jpeg/${song.thumbnail}"
+                            val songInputToRoom = Song(
+                                song.artists_names,
+                                song.code,
+                                song.duration,
+                                song.id,
+                                song.position,
+                                thumb,
+                                song.title,
+                                song.uri,
+                                song.favor_id
+                            )
+                            viewModel.insertSong(this, songInputToRoom)
+                        }
                         Toast.makeText(this, "Added to favorite !", Toast.LENGTH_SHORT).show()
                         sendBroadcast()
                         isFavorite.postValue(true)
@@ -104,26 +122,45 @@ class PlayerActivity : AppCompatActivity() {
                 }
                 true -> {
                     binding.btnFavor.setImageResource(R.drawable.ic_baseline_favorite_border_24)
-                    if (mAudioList[mPosition].thumbnail != null) {
-                        binding.btnFavor.setOnClickListener {
-                            viewModel.deleteSong(this, mAudioList[mPosition].id!!)
-                            Toast.makeText(this, "Deleted from favorite list !", Toast.LENGTH_SHORT)
-                                .show()
-                            sendBroadcast()
-                            isFavorite.postValue(false)
+                    if (mService.resultSearchSong.value == null) {
+                        if (mAudioList[mPosition].thumbnail != null) {
+                            binding.btnFavor.setOnClickListener {
+                                viewModel.deleteSong(this, mAudioList[mPosition].id!!)
+                                Toast.makeText(
+                                    this,
+                                    "Deleted from favorite list !",
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                                sendBroadcast()
+                                isFavorite.postValue(false)
+                            }
+                        } else {
+                            binding.btnFavor.setOnClickListener {
+                                viewModel.deleteSpecificSongByUri(
+                                    this,
+                                    mAudioList[mPosition].uri.toString()
+                                )
+                                Toast.makeText(
+                                    this,
+                                    "Deleted from favorite list !",
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                                sendBroadcast()
+                                isFavorite.postValue(false)
+                            }
                         }
                     } else {
                         binding.btnFavor.setOnClickListener {
-                            viewModel.deleteSpecificSongByUri(
-                                this,
-                                mAudioList[mPosition].uri.toString()
-                            )
+                            song.id?.let { it1 -> viewModel.deleteSong(this, it1) }
                             Toast.makeText(this, "Deleted from favorite list !", Toast.LENGTH_SHORT)
                                 .show()
                             sendBroadcast()
                             isFavorite.postValue(false)
                         }
                     }
+
 
                 }
             }
@@ -145,21 +182,43 @@ class PlayerActivity : AppCompatActivity() {
     private fun getFavoriteListSongData() {
         viewModel.getFavoriteListSong(this).observe(this, {
             isFavorite.postValue(false)
-            if (mAudioList[mPosition].thumbnail != null) {
-                for (i in it) {
-                    if (i.id == mAudioList[mPosition].id) {
-                        isFavorite.postValue(true)
-                        break
+            if (mService.resultSearchSong.value == null) {
+                if (mAudioList[mPosition].thumbnail != null) {
+                    for (i in it) {
+                        if (i.id == mAudioList[mPosition].id) {
+                            isFavorite.postValue(true)
+                            break
+                        }
+                    }
+                } else {
+                    for (i in it) {
+                        if (i.uri == mAudioList[mPosition].uri) {
+                            isFavorite.postValue(true)
+                            break
+                        }
                     }
                 }
             } else {
+                val resultSong = mService.resultSearchSong.value!!
+                song = Song(
+                    resultSong.artist,
+                    null,
+                    resultSong.duration.toInt(),
+                    resultSong.id,
+                    null,
+                    resultSong.thumb,
+                    resultSong.name,
+                    null,
+                    null
+                )
                 for (i in it) {
-                    if (i.uri == mAudioList[mPosition].uri) {
+                    if (i.id == song.id) {
                         isFavorite.postValue(true)
                         break
                     }
                 }
             }
+
 
         })
     }
@@ -170,19 +229,28 @@ class PlayerActivity : AppCompatActivity() {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 val binder = service as MyService.BinderAudio
                 mService = binder.getService()
-                mAudioList = mService.getListAudioLiveData().value!!
-                mPosition = mService.getPosition().value!!
-                handleLayout(mAudioList, mPosition)
+                if (mService.resultSearchSong.value == null) {
+                    mAudioList = mService.getListAudioLiveData().value!!
+                    mPosition = mService.getPosition().value!!
+                    handleLayout()
+                    updateSeekBar()
+                } else {
+                    handleLayout()
+                }
+
                 mService.getListAudioLiveData().observe(this@PlayerActivity, {
                     handler.removeCallbacks(runnable)
                     mAudioList = it
                     mPosition = mService.getPosition().value!!
-                    handleLayout(mAudioList, mPosition)
+                    handleLayout()
                     if (it[mPosition].thumbnail != null) {
                         isOfflineSong.postValue(false)
                     } else {
                         isOfflineSong.postValue(true)
                     }
+                })
+                mService.getPosition().observe(this@PlayerActivity, {
+                    seekBarSetUp()
                 })
             }
 
@@ -196,7 +264,7 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleLayout(mAudioList: ArrayList<Song>, mPosition: Int) {
+    private fun handleLayout() {
         mService.getStatusPlayer().observe(this, {
             when (it) {
                 true -> {
@@ -221,7 +289,57 @@ class PlayerActivity : AppCompatActivity() {
         binding.btnDown.setOnClickListener {
             finish()
         }
-
+        isClicked = restoreShuffleMode()
+        if (isClicked) {
+            binding.btnShuffle.setImageResource(R.drawable.ic_baseline_shuffle_24_selected)
+        } else {
+            binding.btnShuffle.setImageResource(R.drawable.ic_baseline_shuffle_24_white)
+        }
+        isRepeat = restoreRepeatMode()
+        when (isRepeat) {
+            REPEAT_OFF -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_one_24)
+            }
+            REPEAT_ONE -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_one_24_selected)
+            }
+            REPEAT_ALL -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_24)
+            }
+        }
+        binding.btnShuffle.setOnClickListener {
+            isClicked = when (isClicked) {
+                false -> {
+                    saveIsPlayShuffle(true)
+                    binding.btnShuffle.setImageResource(R.drawable.ic_baseline_shuffle_24_selected)
+                    true
+                }
+                true -> {
+                    saveIsPlayShuffle(false)
+                    binding.btnShuffle.setImageResource(R.drawable.ic_baseline_shuffle_24_white)
+                    false
+                }
+            }
+        }
+        binding.btnRepeat.setOnClickListener {
+            isRepeat = when (isRepeat) {
+                REPEAT_OFF -> {
+                    saveIsRepeat(REPEAT_ONE)
+                    binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_one_24_selected)
+                    REPEAT_ONE
+                }
+                REPEAT_ONE -> {
+                    saveIsRepeat(REPEAT_ALL)
+                    binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_24)
+                    REPEAT_ALL
+                }
+                else -> {
+                    saveIsRepeat(REPEAT_OFF)
+                    binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_one_24)
+                    REPEAT_OFF
+                }
+            }
+        }
 
     }
 
@@ -233,15 +351,36 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun seekBarSetUp() {
         binding.seekBar.progress = mService.getCurrentPosition()
-        if (mAudioList[mPosition].duration.toString().length < 4) {
-            binding.tvDuration.text =
-                Const.durationConverter((mAudioList[mPosition].duration * 1000).toLong())
-            binding.seekBar.max = mAudioList[mPosition].duration * 1000
+        if (mService.resultSearchSong.value == null) {
+            if (mAudioList[mService.getPosition().value!!].duration.toString().length < 4) {
+                binding.tvDuration.text =
+                    Const.durationConverter((mAudioList[mService.getPosition().value!!].duration * 1000).toLong())
+                binding.seekBar.max = mAudioList[mService.getPosition().value!!].duration * 1000
+            } else {
+                binding.tvDuration.text =
+                    Const.durationConverter((mAudioList[mService.getPosition().value!!].duration).toLong())
+                binding.seekBar.max = mAudioList[mService.getPosition().value!!].duration
+            }
         } else {
+            if (!this::song.isInitialized) {
+                val resultSong = mService.resultSearchSong.value!!
+                song = Song(
+                    resultSong.artist,
+                    null,
+                    resultSong.duration.toInt(),
+                    resultSong.id,
+                    null,
+                    resultSong.thumb,
+                    resultSong.name,
+                    null,
+                    null
+                )
+            }
             binding.tvDuration.text =
-                Const.durationConverter((mAudioList[mPosition].duration).toLong())
-            binding.seekBar.max = mAudioList[mPosition].duration
+                Const.durationConverter((song.duration * 1000).toLong())
+            binding.seekBar.max = song.duration * 1000
         }
+
         binding.seekBar.setOnSeekBarChangeListener(
             @SuppressLint("AppCompatCustomView")
             object : SeekBar.OnSeekBarChangeListener {
@@ -256,15 +395,39 @@ class PlayerActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                //
-            }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    //
+                }
 
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                sendProgress(seekBar!!.progress)
-            }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    sendProgress(seekBar!!.progress)
+                }
 
-        })
+            })
+    }
+
+    private fun saveIsPlayShuffle(b: Boolean) {
+        val pref = applicationContext.getSharedPreferences("myPrefs", MODE_PRIVATE)
+        val editor = pref.edit()
+        editor.putBoolean("isPlayShuffle", b)
+        editor.apply()
+    }
+
+    private fun saveIsRepeat(mode: Int) {
+        val pref = applicationContext.getSharedPreferences("myPrefs", MODE_PRIVATE)
+        val editor = pref.edit()
+        editor.putInt("isRepeat", mode)
+        editor.apply()
+    }
+
+    private fun restoreShuffleMode(): Boolean {
+        val pref = applicationContext.getSharedPreferences("myPrefs", MODE_PRIVATE)
+        return pref.getBoolean("isPlayShuffle", false)
+    }
+
+    private fun restoreRepeatMode(): Int {
+        val pref = applicationContext.getSharedPreferences("myPrefs", MODE_PRIVATE)
+        return pref.getInt("isRepeat", REPEAT_OFF)
     }
 
     private fun sendProgress(progress: Int) {

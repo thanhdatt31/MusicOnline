@@ -19,6 +19,9 @@ object Const {
     const val ACTION_NEXT = 5
     const val ACTION_PREVIOUS = 6
     const val REFRESH_LIST = "REFRESH_LIST"
+    const val REPEAT_OFF = 0
+    const val REPEAT_ONE = 1
+    const val REPEAT_ALL = 2
     fun durationConverter(duration: Long): String {
         return String.format(
             "%02d:%02d",

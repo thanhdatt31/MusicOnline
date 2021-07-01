@@ -66,14 +66,18 @@ class RecommendFragment : Fragment() {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 val binder = service as MyService.BinderAudio
                 mService = binder.getService()
-                mAudioList = mService.getListAudioLiveData().value!!
-                mPosition = mService.getPosition().value!!
-                if(mAudioList[mPosition].thumbnail == null){
-                    setupViewModel(null)
+                if (mService.resultSearchSong.value == null) {
+                    mAudioList = mService.getListAudioLiveData().value!!
+                    mPosition = mService.getPosition().value!!
+                    if (mAudioList[mPosition].thumbnail == null) {
+                        setupViewModel(null)
+                    } else {
+                        mAudioList[mPosition].id?.let { setupViewModel(it) }
+                    }
                 } else {
-                    mAudioList[mPosition].id?.let { setupViewModel(it) }
+                    val resultSong = mService.resultSearchSong.value!!
+                    setupViewModel(resultSong.id)
                 }
-
 
             }
 
@@ -126,6 +130,7 @@ class RecommendFragment : Fragment() {
             getOfflineSong()
         } else {
             viewModel.id = id
+            viewModel.getRecommendSong()
             getRecommendSong()
         }
 
@@ -148,7 +153,17 @@ class RecommendFragment : Fragment() {
                 mService.setListAudioAndPosition(mListOfflineSong!!, position)
             }
             mService.playAudio()
+            refreshRecommendList()
         }
 
+    }
+
+    private fun refreshRecommendList() {
+        mAudioList = mService.getListAudioLiveData().value!!
+        mPosition = mService.getPosition().value!!
+        val song: Song = mAudioList[mPosition]
+        viewModel.id = song.id.toString()
+        viewModel.getRecommendSong()
+        getRecommendSong()
     }
 }

@@ -59,15 +59,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     .replace(R.id.relativelayout, FavoriteFragment()).commit()
                 toolbar.title = "Music Favorite"
             }
-            R.id.nav_aboutUs -> {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.relativelayout, SearchFragment()).commit()
-                toolbar.title = "Search"
-            }
-
-            R.id.nav_rateMe -> {
-                Toast.makeText(this, "Rate Me 5 Star", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 
@@ -77,11 +68,29 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.search -> {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.relativelayout, SearchFragment()).addToBackStack("").commit()
+                toolbar.title = "Search"
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-            super.onBackPressed()
+            if (supportFragmentManager.backStackEntryCount > 0) {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.relativelayout, HomeFragment()).commit()
+                toolbar.title = "Online Music"
+            } else {
+                super.onBackPressed()
+            }
+
         }
 
     }

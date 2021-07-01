@@ -19,14 +19,4 @@
 
     </group>
 
-    <item android:title="Other">
-        <menu>
-            <item
-                android:id="@+id/nav_aboutUs"
-                android:title="About Us" />
-            <item
-                android:id="@+id/nav_rateMe"
-                android:title="Rate Me" />
-        </menu>
-    </item>
 </menu>
