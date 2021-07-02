@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="20dp">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/view_thumb"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        app:cardCornerRadius="10dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/img_thumb"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:fontFamily="@font/gilroy_medium"
+        android:text="Title"
+        android:textAlignment="center"
+        android:textColor="#091127"
+        android:textSize="16sp"
+        app:layout_constraintLeft_toLeftOf="@id/view_thumb"
+        app:layout_constraintRight_toRightOf="@id/view_thumb"
+        app:layout_constraintTop_toBottomOf="@id/view_thumb" />
+
+    <TextView
+        android:id="@+id/tv_artist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:fontFamily="@font/gilroy_regular"
+        android:text="Artist"
+        android:textColor="#8996B8"
+        app:layout_constraintLeft_toLeftOf="@id/view_thumb"
+        app:layout_constraintRight_toRightOf="@id/view_thumb"
+        app:layout_constraintTop_toBottomOf="@id/tv_title" />
+
+    <TextView
+        android:id="@+id/tv_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Duration"
+        android:textColor="#818181"
+        android:visibility="gone"
+        app:layout_constraintLeft_toLeftOf="@id/tv_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_artist" />
+
+    <TextView
+        android:id="@+id/tv_pos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1"
+        android:textColor="@color/baemin"
+        android:textSize="20sp"
+        app:layout_constraintLeft_toLeftOf="@id/view_thumb"
+        app:layout_constraintTop_toTopOf="@id/view_thumb" />
+</androidx.constraintlayout.widget.ConstraintLayout>

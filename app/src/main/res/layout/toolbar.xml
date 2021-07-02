@@ -13,12 +13,10 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/baemin"
+            android:background="#F7FAFF"
+            app:titleTextColor="#F7FAFF"
             app:layout_constraintTop_toTopOf="parent"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:subtitleTextColor="@color/white"
-            app:title="Android App"
-            app:titleTextColor="@color/white" />
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <include layout="@layout/content_main" />

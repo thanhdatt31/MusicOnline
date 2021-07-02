@@ -4,30 +4,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
+    android:background="#F7FAFF"
     tools:context=".ui.fragment.MusicDetailFragment">
 
 
     <ImageView
         android:id="@+id/img_album_full"
-        android:layout_width="0dp"
+        android:layout_width="200dp"
         android:layout_height="200dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.2"
-        app:layout_constraintWidth_percent="0.7" />
+        app:layout_constraintVertical_bias="0.2" />
 
     <TextView
         android:id="@+id/tv_song_title_full"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:fontFamily="@font/raleway_black"
+        android:fontFamily="@font/gilroy_medium"
         android:text="@string/app_name"
-        android:textColor="@color/white"
-        android:textSize="18sp"
+        android:textAlignment="center"
+        android:textColor="#091127"
+        android:textSize="24sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/img_album_full" />
@@ -37,10 +37,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:fontFamily="@font/raleway_regular"
+        android:fontFamily="@font/gilroy_regular"
         android:text="@string/app_name"
-        android:textColor="@color/white"
-        android:textSize="14sp"
+        android:textColor="#8996B8"
+        android:textSize="16sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_song_title_full" />

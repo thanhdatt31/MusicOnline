@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.*
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Binder
@@ -33,7 +32,6 @@ import com.example.musiconline.ulti.Const.REPEAT_ONE
 import com.example.musiconline.ulti.Const.SEND_ACTION_FROM_NOTIFICATION
 import com.example.musiconline.ulti.Const.getAlbumBitmap
 import kotlinx.coroutines.*
-import java.io.File
 
 class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     private val mIBinder = BinderAudio()
@@ -306,8 +304,11 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
 
     fun previousMusic() {
         musicPlayer.pause()
-        mPosition.value = mPosition.value?.minus(1)
-        playAudio()
+        if (mPosition.value != 0) {
+            mPosition.value = mPosition.value?.minus(1)
+            playAudio()
+        }
+
     }
 
     override fun onDestroy() {
@@ -322,9 +323,13 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
         if (restoreShuffleMode()) {
             mPosition.value = (0 until mAudioList.size).random()
         } else {
-            mPosition.value = mPosition.value?.plus(1)
-            musicPlayer.stop()
-
+            if (mPosition.value!! == mAudioList.size - 1) {
+                mPosition.value = 0
+                playAudio()
+            } else {
+                mPosition.value = mPosition.value?.plus(1)
+                playAudio()
+            }
         }
         playAudio()
 
@@ -372,12 +377,13 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
                 nextMusic()
             }
             REPEAT_ALL -> {
-                mPosition.value = mPosition.value?.plus(1)
-                if (mPosition.value!! < mAudioList.size) {
-                    playAudio()
-                } else {
+                if (mPosition.value!! == mAudioList.size - 1) {
                     mPosition.value = 0
                     playAudio()
+                } else {
+                    mPosition.value = mPosition.value?.plus(1)
+                    playAudio()
+
                 }
             }
         }

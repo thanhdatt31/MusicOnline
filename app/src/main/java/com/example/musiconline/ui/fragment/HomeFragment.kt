@@ -13,6 +13,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
+import com.example.musiconline.adapter.RecommendAdapter
+import com.example.musiconline.adapter.RecommendSongHomeAdapter
 import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentHomeBinding
 import com.example.musiconline.model.Song
@@ -29,7 +31,9 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var viewModel: MainViewModel
     private var songAdapter = SongAdapter()
+    private var recommendAdapter = RecommendSongHomeAdapter()
     private var mAudioList: ArrayList<Song> = arrayListOf()
+    private var mRecommendList: ArrayList<Song> = arrayListOf()
     private lateinit var mService: MyService
     private var mBound: Boolean = false
     private var mPosition = 0
@@ -67,7 +71,7 @@ class HomeFragment : Fragment() {
                             binding.viewMini.visibility = View.VISIBLE
                         }
                         hideProgressBar()
-                        binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_pause_24)
+                        binding.btnPlayPause.setImageResource(R.drawable.icons8_pause_100)
                         binding.btnPlayPause.setOnClickListener {
                             mService.pauseMusic()
                         }
@@ -77,7 +81,7 @@ class HomeFragment : Fragment() {
                         if (binding.viewMini.visibility != View.VISIBLE) {
                             binding.viewMini.visibility = View.VISIBLE
                         }
-                        binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_play_arrow_24)
+                        binding.btnPlayPause.setImageResource(R.drawable.icons8_play_100)
                         binding.btnPlayPause.setOnClickListener {
                             mService.resumeMusic()
                         }
@@ -164,9 +168,14 @@ class HomeFragment : Fragment() {
 
     private fun init() {
         binding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext())
+            layoutManager = LinearLayoutManager(requireContext(),LinearLayoutManager.HORIZONTAL,false)
             setHasFixedSize(true)
             songAdapter.setOnClickListener(onClicked)
+        }
+        binding.recyclerViewRecommend.apply {
+            layoutManager = LinearLayoutManager(requireContext(),LinearLayoutManager.HORIZONTAL,false)
+            setHasFixedSize(true)
+            recommendAdapter.setOnClickListener(onClickedRecommend)
         }
         setupViewModel()
     }
@@ -176,6 +185,31 @@ class HomeFragment : Fragment() {
         val factory = ViewModelProviderFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
         getTopSong()
+        viewModel.id = "ZOFBAAWC"
+        viewModel.getRecommendSong()
+        getRecommendSong()
+    }
+
+    private fun getRecommendSong() {
+        viewModel.recommendSongData.observe(viewLifecycleOwner, { it ->
+            when(it){
+                is Resource.Success -> {
+                    hideProgressBar()
+                    it.data?.let {
+                        mRecommendList = it.data.items
+                        recommendAdapter.setData(mRecommendList)
+                        binding.recyclerViewRecommend.adapter = recommendAdapter
+                    }
+                }
+                is Resource.Loading -> {
+                    showProgressBar()
+                }
+                is Resource.Error -> {
+                    hideProgressBar()
+                    Toast.makeText(requireContext(), "Error", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
     }
 
     private fun getTopSong() {
@@ -217,5 +251,13 @@ class HomeFragment : Fragment() {
         }
 
     }
+    private val onClickedRecommend = object : RecommendSongHomeAdapter.OnItemClickListener {
+        override fun onClicked(position: Int) {
+            mPosition = position
+            mService.setListAudioAndPosition(mRecommendList, position)
+            mService.playAudio()
+            showProgressBar()
+        }
 
+    }
 }

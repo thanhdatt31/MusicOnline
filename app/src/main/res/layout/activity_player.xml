@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/view_full"
-    android:background="@color/black"
+    android:background="#F7FAFF"
     android:visibility="visible"
     tools:context=".ui.PlayerActivity">
 
@@ -13,10 +13,23 @@
         android:id="@+id/btn_down"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="30dp"
+        android:src="@drawable/ic_back"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/gilroy_semibold"
+        android:text="Now Playing"
+        android:textColor="#091227"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/btn_down"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btn_down" />
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
@@ -30,7 +43,8 @@
         app:tabBackground="@drawable/indicator_selector"
         android:background="@color/black"
         app:tabIndicatorColor="@color/black"
-        app:layout_constraintTop_toBottomOf="@id/btn_shuffle"/>
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@id/btn_down" />
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/viewPager"
@@ -38,7 +52,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
-        app:layout_constraintBottom_toTopOf="@id/seekBar"
+        app:layout_constraintBottom_toTopOf="@id/btn_favor"
         app:layout_constraintTop_toBottomOf="@id/tabLayout" />
 
     <View
@@ -59,10 +73,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:paddingStart="5dp"
-        android:paddingEnd="0dp"
-        android:theme="@style/SeekBarColor"
-        app:layout_constraintBottom_toTopOf="@id/duration"
+        android:layout_marginBottom="50dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="20dp"
+        android:theme="@style/MySeekBar"
+        app:layout_constraintBottom_toTopOf="@id/btn_play_pause"
         app:layout_constraintLeft_toLeftOf="@id/img_album_full"
         app:layout_constraintRight_toRightOf="@id/img_album_full" />
 
@@ -71,7 +86,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@id/btn_play_pause"
+        android:layout_marginBottom="30dp"
+        app:layout_constraintBottom_toTopOf="@id/seekBar"
         app:layout_constraintLeft_toLeftOf="@id/seekBar"
         app:layout_constraintRight_toRightOf="@id/seekBar">
 
@@ -81,8 +97,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/_0_0"
-            android:textColor="@color/white"
-            android:textSize="15sp" />
+            android:fontFamily="@font/gilroy_regular"
+            android:textColor="#0E172D"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/tvDuration"
@@ -91,18 +108,19 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="@string/_3_42"
-            android:textColor="@color/white"
-            android:textSize="15sp" />
+            android:fontFamily="@font/gilroy_regular"
+            android:textColor="#0E172D"
+            android:textSize="12sp" />
 
     </LinearLayout>
 
     <ImageView
         android:id="@+id/btn_play_pause"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
-        android:src="@drawable/ic_baseline_play_circle_outline_24_white"
+        android:src="@drawable/icons8_play_100"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -110,18 +128,18 @@
 
     <ImageView
         android:id="@+id/btn_next"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/ic_baseline_skip_next_24_white"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:src="@drawable/icons8_end_100"
         app:layout_constraintLeft_toRightOf="@id/btn_play_pause"
         app:layout_constraintRight_toRightOf="@id/img_album_full"
         app:layout_constraintTop_toTopOf="@id/btn_play_pause" />
 
     <ImageView
         android:id="@+id/btn_previous"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/ic_baseline_skip_previous_24_white"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:src="@drawable/icons8_previvous"
         app:layout_constraintLeft_toLeftOf="@id/img_album_full"
         app:layout_constraintRight_toLeftOf="@id/btn_play_pause"
         app:layout_constraintTop_toTopOf="@id/btn_next" />
@@ -129,37 +147,37 @@
 
     <ImageView
         android:id="@+id/btn_favor"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="20dp"
-        android:src="@drawable/ic_baseline_favorite_border_24"
-        app:layout_constraintRight_toLeftOf="@id/btn_download"
-        app:layout_constraintTop_toTopOf="@id/btn_down" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:src="@drawable/ic_unfavor"
+        app:layout_constraintBottom_toTopOf="@id/duration"
+        app:layout_constraintRight_toRightOf="@id/duration" />
 
     <ImageView
         android:id="@+id/btn_download"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="20dp"
-        android:src="@drawable/ic_baseline_arrow_circle_down_24"
-        app:layout_constraintRight_toLeftOf="@id/btn_repeat"
-        app:layout_constraintTop_toTopOf="@id/btn_down" />
+        android:layout_width="20dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/ic_downable"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btn_shuffle" />
 
     <ImageView
         android:id="@+id/btn_shuffle"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="20dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="10dp"
         android:src="@drawable/ic_baseline_shuffle_24_white"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@id/btn_down" />
+        app:layout_constraintLeft_toRightOf="@id/btn_repeat"
+        app:layout_constraintTop_toTopOf="@id/btn_repeat" />
 
     <ImageView
         android:id="@+id/btn_repeat"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="20dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:src="@drawable/ic_baseline_repeat_one_24"
-        app:layout_constraintRight_toLeftOf="@id/btn_shuffle"
-        app:layout_constraintTop_toTopOf="@id/btn_down" />
+        app:layout_constraintLeft_toLeftOf="@id/duration"
+        app:layout_constraintTop_toTopOf="@id/btn_favor" />
 </androidx.constraintlayout.widget.ConstraintLayout>

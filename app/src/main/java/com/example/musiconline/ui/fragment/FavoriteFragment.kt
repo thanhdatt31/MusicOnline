@@ -9,9 +9,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
+import com.example.musiconline.adapter.RecommendAdapter
 import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentFavoriteBinding
 import com.example.musiconline.model.Song
@@ -28,7 +30,7 @@ class FavoriteFragment : Fragment() {
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
     private lateinit var viewModel: RoomViewModel
-    private var songAdapter = SongAdapter()
+    private var songAdapter = RecommendAdapter()
     private lateinit var connection: ServiceConnection
     private var mBound: Boolean = false
     private lateinit var mService: MyService
@@ -184,13 +186,13 @@ class FavoriteFragment : Fragment() {
 
     private fun init() {
         binding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext())
+            layoutManager = GridLayoutManager(requireContext(),2)
             setHasFixedSize(true)
             songAdapter.setOnClickListener(onClicked)
         }
     }
 
-    private val onClicked = object : SongAdapter.OnItemClickListener {
+    private val onClicked = object : RecommendAdapter.OnItemClickListener {
         override fun onClicked(position: Int) {
             mPosition = position
             mService.setListAudioAndPosition(mListFavoriteSong as ArrayList<Song>, position)

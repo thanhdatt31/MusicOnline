@@ -1,11 +1,15 @@
 package com.example.musiconline.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.GravityCompat
 import com.example.musiconline.R
 import com.example.musiconline.databinding.ActivityMainBinding
@@ -17,6 +21,7 @@ import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 
+
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: ActivityMainBinding
     private var homeFragment = HomeFragment()
@@ -25,6 +30,39 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(toolbar)
+        requestPermission()
+    }
+    private val requestPermission = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+
+        if (permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true && permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true) {
+            initLayout()
+        }
+    }
+    private fun requestPermission() {
+        val permissionRead = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+
+        )
+        val permissionWrite = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+        if (permissionRead == PackageManager.PERMISSION_GRANTED && permissionWrite == PackageManager.PERMISSION_GRANTED) {
+            initLayout()
+        } else {
+            requestPermission.launch(
+                arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
+            )
+        }
+    }
+
+    private fun initLayout() {
         val toggle = ActionBarDrawerToggle(
             this,
             drawerLayout,
@@ -32,13 +70,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.string.navigation_drawer_open,
             R.string.navigation_drawer_close
         )
+        toolbar.post {
+            val d = ResourcesCompat.getDrawable(resources, R.drawable.ic_menu_black_24dp, null)
+            toolbar.navigationIcon = d
+        }
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
         nav_view.setNavigationItemSelectedListener(this)
         displayScreen(0)
         supportFragmentManager.beginTransaction()
             .replace(R.id.relativelayout, homeFragment).commit()
-        toolbar.title = "Music Online"
     }
 
 
@@ -47,17 +88,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_home -> {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.relativelayout, HomeFragment()).commit()
-                toolbar.title = "Music Online"
             }
             R.id.music_offline -> {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.relativelayout, OfflineMusicFragment()).commit()
-                toolbar.title = "Music Offline"
             }
             R.id.favorite -> {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.relativelayout, FavoriteFragment()).commit()
-                toolbar.title = "Music Favorite"
             }
         }
     }
@@ -73,7 +111,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.search -> {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.relativelayout, SearchFragment()).addToBackStack("").commit()
-                toolbar.title = "Search"
             }
         }
         return super.onOptionsItemSelected(item)
@@ -86,7 +123,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             if (supportFragmentManager.backStackEntryCount > 0) {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.relativelayout, HomeFragment()).commit()
-                toolbar.title = "Online Music"
             } else {
                 super.onBackPressed()
             }

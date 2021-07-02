@@ -66,7 +66,7 @@ class PlayerActivity : AppCompatActivity() {
         isOfflineSong.observe(this, {
             when (it) {
                 false -> {
-                    binding.btnDownload.setImageResource(R.drawable.ic_baseline_arrow_circle_down_24_white)
+                    binding.btnDownload.setImageResource(R.drawable.ic_downable)
                     if (mService.resultSearchSong.value == null) {
                         binding.btnDownload.setOnClickListener {
                             val url =
@@ -83,7 +83,7 @@ class PlayerActivity : AppCompatActivity() {
                             val downloadManager =
                                 getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                             val idDownload = downloadManager.enqueue(request)
-
+                            Toast.makeText(this@PlayerActivity, "Download ${mService.getListAudioLiveData().value!![mService.getPosition().value!!].title}", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         binding.btnDownload.setOnClickListener {
@@ -102,11 +102,12 @@ class PlayerActivity : AppCompatActivity() {
                             val downloadManager =
                                 getSystemService(android.content.Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
                             val idDownload = downloadManager.enqueue(request)
+                            Toast.makeText(this@PlayerActivity, "Download ${mService.resultSearchSong.value!!.name}", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
                 true -> {
-                    binding.btnDownload.setImageResource(R.drawable.ic_baseline_arrow_circle_down_24)
+                    binding.btnDownload.setImageResource(R.drawable.ic_undownloadable)
                     binding.btnDownload.setOnClickListener {
                         Toast.makeText(this, "Offline music", Toast.LENGTH_SHORT).show()
                     }
@@ -116,10 +117,10 @@ class PlayerActivity : AppCompatActivity() {
         isFavorite.observe(this, {
             when (it) {
                 false -> {
-                    binding.btnFavor.setImageResource(R.drawable.ic_baseline_favorite_24)
+                    binding.btnFavor.setImageResource(R.drawable.ic_unfavor)
                     binding.btnFavor.setOnClickListener {
                         if (mService.resultSearchSong.value == null) {
-                            viewModel.insertSong(this, mAudioList[mPosition])
+                            viewModel.insertSong(this, mAudioList[mService.getPosition().value!!])
                         } else {
                             val thumb =
                                 "https://photo-resize-zmp3.zadn.vn/w94_r1x1_jpeg/${song.thumbnail}"
@@ -143,11 +144,11 @@ class PlayerActivity : AppCompatActivity() {
 
                 }
                 true -> {
-                    binding.btnFavor.setImageResource(R.drawable.ic_baseline_favorite_border_24)
+                    binding.btnFavor.setImageResource(R.drawable.ic_favor)
                     if (mService.resultSearchSong.value == null) {
                         if (mAudioList[mPosition].thumbnail != null) {
                             binding.btnFavor.setOnClickListener {
-                                viewModel.deleteSong(this, mAudioList[mPosition].id!!)
+                                viewModel.deleteSong(this, mAudioList[mService.getPosition().value!!].id!!)
                                 Toast.makeText(
                                     this,
                                     "Deleted from favorite list !",
@@ -161,7 +162,7 @@ class PlayerActivity : AppCompatActivity() {
                             binding.btnFavor.setOnClickListener {
                                 viewModel.deleteSpecificSongByUri(
                                     this,
-                                    mAudioList[mPosition].uri.toString()
+                                    mAudioList[mService.getPosition().value!!].uri.toString()
                                 )
                                 Toast.makeText(
                                     this,
@@ -205,16 +206,16 @@ class PlayerActivity : AppCompatActivity() {
         viewModel.getFavoriteListSong(this).observe(this, {
             isFavorite.postValue(false)
             if (mService.resultSearchSong.value == null) {
-                if (mAudioList[mPosition].thumbnail != null) {
+                if (mAudioList[mService.getPosition().value!!].thumbnail != null) {
                     for (i in it) {
-                        if (i.id == mAudioList[mPosition].id) {
+                        if (i.id == mAudioList[mService.getPosition().value!!].id) {
                             isFavorite.postValue(true)
                             break
                         }
                     }
                 } else {
                     for (i in it) {
-                        if (i.uri == mAudioList[mPosition].uri) {
+                        if (i.uri == mAudioList[mService.getPosition().value!!].uri) {
                             isFavorite.postValue(true)
                             break
                         }
@@ -268,6 +269,7 @@ class PlayerActivity : AppCompatActivity() {
                 })
                 mService.getPosition().observe(this@PlayerActivity, {
                     seekBarSetUp()
+                    getFavoriteListSongData()
                 })
                 mService.resultSearchSong.observe(this@PlayerActivity, {
                     if (it == null) {
@@ -297,7 +299,7 @@ class PlayerActivity : AppCompatActivity() {
             when (it) {
                 true -> {
                     binding.btnPlayPause.apply {
-                        setImageResource(R.drawable.ic_baseline_pause_circle_outline_24_white)
+                        setImageResource(R.drawable.icons8_pause_100)
                         setOnClickListener {
                             mService.pauseMusic()
                         }
@@ -306,7 +308,7 @@ class PlayerActivity : AppCompatActivity() {
                 }
                 false -> {
                     binding.btnPlayPause.apply {
-                        setImageResource(R.drawable.ic_baseline_play_circle_outline_24_white)
+                        setImageResource(R.drawable.icons8_play_100)
                         setOnClickListener {
                             mService.resumeMusic()
                         }
@@ -326,7 +328,7 @@ class PlayerActivity : AppCompatActivity() {
         isRepeat = restoreRepeatMode()
         when (isRepeat) {
             REPEAT_OFF -> {
-                binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_one_24)
+                binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_24_white)
             }
             REPEAT_ONE -> {
                 binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_one_24_selected)
@@ -363,12 +365,17 @@ class PlayerActivity : AppCompatActivity() {
                 }
                 else -> {
                     saveIsRepeat(REPEAT_OFF)
-                    binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_one_24)
+                    binding.btnRepeat.setImageResource(R.drawable.ic_baseline_repeat_24_white)
                     REPEAT_OFF
                 }
             }
         }
-
+        binding.btnNext.setOnClickListener {
+            mService.nextMusic()
+        }
+        binding.btnPrevious.setOnClickListener {
+            mService.previousMusic()
+        }
     }
 
     private fun updateSeekBar() {
