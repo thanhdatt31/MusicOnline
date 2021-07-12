@@ -12,12 +12,12 @@
         android:id="@+id/tv_chart"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="30dp"
         android:fontFamily="@font/gilroy_bold"
         android:text="Chart #100"
         android:textColor="#091127"
         android:textSize="24sp"
-        android:layout_marginTop="30dp"
-        android:layout_marginStart="30dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -25,32 +25,40 @@
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="20dp"
         app:layout_constraintLeft_toLeftOf="@id/tv_chart"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_chart" />
 
     <TextView
         android:id="@+id/tv_recommend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="30dp"
         android:fontFamily="@font/gilroy_bold"
         android:text="Recommended for you"
         android:textColor="#091127"
         android:textSize="24sp"
-        android:layout_marginTop="30dp"
-        android:layout_marginStart="30dp"
         app:layout_constraintLeft_toLeftOf="parent"
-       app:layout_constraintTop_toBottomOf="@id/recyclerView" />
+        app:layout_constraintTop_toBottomOf="@id/recyclerView" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_recommend"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="20dp"
         app:layout_constraintLeft_toLeftOf="@id/tv_recommend"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_recommend" />
+    <ImageView
+        android:id="@+id/img_loading"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/view_mini"
         android:layout_width="match_parent"
@@ -64,8 +72,8 @@
             android:id="@+id/img_album_border"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintDimensionRatio="H,1:1"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="H,1:1"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -134,6 +142,7 @@
             app:layout_constraintTop_toTopOf="@id/view_mini" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
     <LinearLayout
         android:id="@+id/progress"
         android:layout_width="0dp"
@@ -147,8 +156,8 @@
 
         <ProgressBar
             android:id="@+id/progressbar"
-            android:theme="@style/progressbar"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:theme="@style/progressbar" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

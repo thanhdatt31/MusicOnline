@@ -107,7 +107,7 @@ class FavoriteFragment : Fragment() {
                                 binding.viewMini.visibility = View.VISIBLE
                             }
                             hideProgressBar()
-                            binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_pause_24)
+                            binding.btnPlayPause.setImageResource(R.drawable.icons8_pause_100)
                             binding.btnPlayPause.setOnClickListener {
                                 mService.pauseMusic()
                             }
@@ -117,7 +117,7 @@ class FavoriteFragment : Fragment() {
                             if (binding.viewMini.visibility != View.VISIBLE) {
                                 binding.viewMini.visibility = View.VISIBLE
                             }
-                            binding.btnPlayPause.setImageResource(R.drawable.ic_baseline_play_arrow_24)
+                            binding.btnPlayPause.setImageResource(R.drawable.icons8_play_100)
                             binding.btnPlayPause.setOnClickListener {
                                 mService.resumeMusic()
                             }
