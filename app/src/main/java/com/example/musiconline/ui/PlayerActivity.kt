@@ -31,7 +31,6 @@ import com.example.musiconline.ulti.Const.REPEAT_ALL
 import com.example.musiconline.ulti.Const.REPEAT_OFF
 import com.example.musiconline.ulti.Const.REPEAT_ONE
 import com.example.musiconline.viewmodel.RoomViewModel
-import com.example.musiconline.viewmodel.RoomViewModelProviderFactory
 import kotlinx.coroutines.DelicateCoroutinesApi
 
 class PlayerActivity : AppCompatActivity() {
@@ -40,21 +39,26 @@ class PlayerActivity : AppCompatActivity() {
     private var mBound: Boolean = false
     private lateinit var mService: MyService
     private var mAudioList: ArrayList<Song> = arrayListOf()
-    private var mListFavoriteSong: List<Song> = arrayListOf()
     private var mPosition = 0
     private var handler = Handler()
     private lateinit var song: Song
-    private lateinit var viewModel: RoomViewModel
     private var isOfflineSong: MutableLiveData<Boolean> = MutableLiveData()
     private var isFavorite: MutableLiveData<Boolean> = MutableLiveData()
     private var isClicked = false
     private var isRepeat = REPEAT_OFF
+    private val viewModel by lazy {
+        ViewModelProvider(
+            this,
+            RoomViewModel.RoomViewModelProviderFactory(this.application, RoomRepository())
+        )
+            .get(RoomViewModel::class.java)
+    }
 
     @DelicateCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initService()
-        setupViewModel()
+        getFavoriteListSongData()
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.viewPager.apply {
@@ -83,7 +87,11 @@ class PlayerActivity : AppCompatActivity() {
                             val downloadManager =
                                 getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                             val idDownload = downloadManager.enqueue(request)
-                            Toast.makeText(this@PlayerActivity, "Download ${mService.getListAudioLiveData().value!![mService.getPosition().value!!].title}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this@PlayerActivity,
+                                "Download ${mService.getListAudioLiveData().value!![mService.getPosition().value!!].title}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     } else {
                         binding.btnDownload.setOnClickListener {
@@ -102,7 +110,11 @@ class PlayerActivity : AppCompatActivity() {
                             val downloadManager =
                                 getSystemService(android.content.Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
                             val idDownload = downloadManager.enqueue(request)
-                            Toast.makeText(this@PlayerActivity, "Download ${mService.resultSearchSong.value!!.name}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this@PlayerActivity,
+                                "Download ${mService.resultSearchSong.value!!.name}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 }
@@ -148,7 +160,10 @@ class PlayerActivity : AppCompatActivity() {
                     if (mService.resultSearchSong.value == null) {
                         if (mAudioList[mPosition].thumbnail != null) {
                             binding.btnFavor.setOnClickListener {
-                                viewModel.deleteSong(this, mAudioList[mService.getPosition().value!!].id!!)
+                                viewModel.deleteSong(
+                                    this,
+                                    mAudioList[mService.getPosition().value!!].id!!
+                                )
                                 Toast.makeText(
                                     this,
                                     "Deleted from favorite list !",
@@ -193,13 +208,6 @@ class PlayerActivity : AppCompatActivity() {
     private fun sendBroadcast() {
         val intent = Intent(REFRESH_LIST)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-    }
-
-    private fun setupViewModel() {
-        val repository = RoomRepository()
-        val factory = RoomViewModelProviderFactory(application, repository)
-        viewModel = ViewModelProvider(this, factory).get(RoomViewModel::class.java)
-        getFavoriteListSongData()
     }
 
     private fun getFavoriteListSongData() {
@@ -427,8 +435,8 @@ class PlayerActivity : AppCompatActivity() {
                     if (fromUser) {
                         sendProgress(progress)
                         binding.tvCurrentTime.text = Const.durationConverter(progress.toLong())
+                    }
                 }
-            }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
                     //

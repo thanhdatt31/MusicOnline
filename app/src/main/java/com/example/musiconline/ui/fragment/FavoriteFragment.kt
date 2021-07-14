@@ -10,11 +10,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
 import com.example.musiconline.adapter.RecommendAdapter
-import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentFavoriteBinding
 import com.example.musiconline.model.Song
 import com.example.musiconline.repository.RoomRepository
@@ -23,13 +21,11 @@ import com.example.musiconline.ui.PlayerActivity
 import com.example.musiconline.ulti.Const
 import com.example.musiconline.ulti.Const.REFRESH_LIST
 import com.example.musiconline.viewmodel.RoomViewModel
-import com.example.musiconline.viewmodel.RoomViewModelProviderFactory
 
 
 class FavoriteFragment : Fragment() {
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
-    private lateinit var viewModel: RoomViewModel
     private var songAdapter = RecommendAdapter()
     private lateinit var connection: ServiceConnection
     private var mBound: Boolean = false
@@ -37,6 +33,11 @@ class FavoriteFragment : Fragment() {
     private var mPosition = 0
     private var mListFavoriteSong: List<Song>? = arrayListOf()
     private lateinit var song: Song
+    private val roomRepository = RoomRepository()
+    private val viewModel by lazy {
+        ViewModelProvider(this,RoomViewModel.RoomViewModelProviderFactory(requireActivity().application,roomRepository))
+            .get(RoomViewModel::class.java)
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -48,7 +49,7 @@ class FavoriteFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initService()
-        setupViewModel()
+        getFavoriteListSongData()
     }
 
     override fun onResume() {
@@ -62,12 +63,6 @@ class FavoriteFragment : Fragment() {
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(broadcastReceiver)
     }
 
-    private fun setupViewModel() {
-        val repository = RoomRepository()
-        val factory = RoomViewModelProviderFactory(requireActivity().application, repository)
-        viewModel = ViewModelProvider(this, factory).get(RoomViewModel::class.java)
-        getFavoriteListSongData()
-    }
 
     private fun getFavoriteListSongData() {
         viewModel.getFavoriteListSong(requireContext()).observe(this, {

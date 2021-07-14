@@ -26,82 +26,22 @@ import com.example.musiconline.ui.PlayerActivity
 import com.example.musiconline.ulti.Const
 import com.example.musiconline.ulti.Resource
 import com.example.musiconline.viewmodel.MainViewModel
-import com.example.musiconline.viewmodel.ViewModelProviderFactory
-import java.util.*
 
 
 class SearchFragment : Fragment(), SearchView.OnQueryTextListener {
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
     private var resultSongAdapter = ResultSongAdapter()
-    private var mAudioList: ArrayList<Song> = arrayListOf()
-    private lateinit var viewModel: MainViewModel
     private lateinit var mService: MyService
     private var mBound: Boolean = false
-    private var mPosition = 0
     private lateinit var song: Song
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as MyService.BinderAudio
-            mService = binder.getService()
-            mService.getStatusPlayer().observe(viewLifecycleOwner, {
-                song = if (mService.resultSearchSong.value == null) {
-                    mService.getPosition().value!!.let { it1 ->
-                        mService.getListAudioLiveData().value!![it1]
-                    }
-                } else {
-                    val resultSong = mService.resultSearchSong.value!!
-                    Song(
-                        resultSong.artist,
-                        null,
-                        resultSong.duration.toInt(),
-                        resultSong.id,
-                        null,
-                        resultSong.thumb,
-                        resultSong.name,
-                        null,
-                        null
-                    )
-                }
-                when (it) {
-                    true -> {
-                        if (binding.viewMini.visibility != View.VISIBLE) {
-                            binding.viewMini.visibility = View.VISIBLE
-                        }
-                        hideProgressBar()
-                        binding.btnPlayPause.setImageResource(R.drawable.icons8_pause_100)
-                        binding.btnPlayPause.setOnClickListener {
-                            mService.pauseMusic()
-                        }
-                        handleMusicDetails(song)
-                    }
-                    false -> {
-                        if (binding.viewMini.visibility != View.VISIBLE) {
-                            binding.viewMini.visibility = View.VISIBLE
-                        }
-                        binding.btnPlayPause.setImageResource(R.drawable.icons8_play_100)
-                        binding.btnPlayPause.setOnClickListener {
-                            mService.resumeMusic()
-                        }
-                        handleMusicDetails(song)
-                    }
-                }
-            })
-            mService.getStatusService().observe(viewLifecycleOwner, {
-                when (it) {
-                    false -> {
-                        if (binding.viewMini.visibility == View.VISIBLE) {
-                            binding.viewMini.visibility = View.GONE
-                        }
-                    }
-                }
-            })
-            mBound = true
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            mBound = false
-        }
+    private lateinit var connection: ServiceConnection
+    private val viewModel by lazy {
+        ViewModelProvider(
+            this,
+            MainViewModel.ViewModelProviderFactory(requireActivity().application, MainRepository())
+        )
+            .get(MainViewModel::class.java)
     }
 
     private fun handleMusicDetails(song: Song) {
@@ -144,7 +84,74 @@ class SearchFragment : Fragment(), SearchView.OnQueryTextListener {
         Intent(requireContext(), MyService::class.java).also { intent ->
             requireActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
+        initService()
         return binding.root
+    }
+
+    private fun initService() {
+        connection = object : ServiceConnection {
+            override fun onServiceConnected(className: ComponentName, service: IBinder) {
+                val binder = service as MyService.BinderAudio
+                mService = binder.getService()
+                mService.getStatusPlayer().observe(viewLifecycleOwner, {
+                    song = if (mService.resultSearchSong.value == null) {
+                        mService.getPosition().value!!.let { it1 ->
+                            mService.getListAudioLiveData().value!![it1]
+                        }
+                    } else {
+                        val resultSong = mService.resultSearchSong.value!!
+                        Song(
+                            resultSong.artist,
+                            null,
+                            resultSong.duration.toInt(),
+                            resultSong.id,
+                            null,
+                            resultSong.thumb,
+                            resultSong.name,
+                            null,
+                            null
+                        )
+                    }
+                    when (it) {
+                        true -> {
+                            if (binding.viewMini.visibility != View.VISIBLE) {
+                                binding.viewMini.visibility = View.VISIBLE
+                            }
+                            hideProgressBar()
+                            binding.btnPlayPause.setImageResource(R.drawable.icons8_pause_100)
+                            binding.btnPlayPause.setOnClickListener {
+                                mService.pauseMusic()
+                            }
+                            handleMusicDetails(song)
+                        }
+                        false -> {
+                            if (binding.viewMini.visibility != View.VISIBLE) {
+                                binding.viewMini.visibility = View.VISIBLE
+                            }
+                            binding.btnPlayPause.setImageResource(R.drawable.icons8_play_100)
+                            binding.btnPlayPause.setOnClickListener {
+                                mService.resumeMusic()
+                            }
+                            handleMusicDetails(song)
+                        }
+                    }
+                })
+                mService.getStatusService().observe(viewLifecycleOwner, {
+                    when (it) {
+                        false -> {
+                            if (binding.viewMini.visibility == View.VISIBLE) {
+                                binding.viewMini.visibility = View.GONE
+                            }
+                        }
+                    }
+                })
+                mBound = true
+            }
+
+            override fun onServiceDisconnected(arg0: ComponentName) {
+                mBound = false
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -159,16 +166,10 @@ class SearchFragment : Fragment(), SearchView.OnQueryTextListener {
 //            songAdapter.setOnClickListener(onClicked)
             resultSongAdapter.setOnClickListener(onClicked)
         }
-        setupViewModel()
+        getSearchResult()
         binding.searchView.setOnQueryTextListener(this)
     }
 
-    private fun setupViewModel() {
-        val repository = MainRepository()
-        val factory = ViewModelProviderFactory(requireActivity().application, repository)
-        viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
-        getSearchResult()
-    }
 
     private fun getSearchResult() {
         viewModel.searchResultData.observe(viewLifecycleOwner, { it ->
@@ -176,7 +177,7 @@ class SearchFragment : Fragment(), SearchView.OnQueryTextListener {
                 is Resource.Success -> {
                     hideProgressBar()
                     it.data?.let {
-                        if(!it.data.isNullOrEmpty()){
+                        if (!it.data.isNullOrEmpty()) {
                             binding.recyclerView.visibility = View.VISIBLE
                             resultSongAdapter.setData(it.data[0].song)
                             binding.recyclerView.adapter = resultSongAdapter
@@ -222,7 +223,5 @@ class SearchFragment : Fragment(), SearchView.OnQueryTextListener {
             mService.setDataOnline(resultSong)
             mService.playAudioOnline(resultSong)
         }
-
-
     }
 }

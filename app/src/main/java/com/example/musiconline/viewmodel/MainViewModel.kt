@@ -5,9 +5,7 @@ import android.content.ContentUris
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.musiconline.model.RecommendSong
 import com.example.musiconline.model.SearchResult
 import com.example.musiconline.model.Song
@@ -139,5 +137,18 @@ class MainViewModel(
             }
         }
         return Resource.Error(response.message())
+    }
+    class ViewModelProviderFactory(
+        val app: Application,
+        private val mainRepository: MainRepository
+    ) : ViewModelProvider.Factory {
+
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+                return MainViewModel(app, mainRepository) as T
+            }
+            throw IllegalArgumentException("Unknown class name")
+        }
+
     }
 }

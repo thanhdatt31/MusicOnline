@@ -1,6 +1,9 @@
 package com.example.musiconline.ui.fragment
 
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -13,7 +16,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
-import com.example.musiconline.adapter.RecommendAdapter
 import com.example.musiconline.adapter.RecommendSongHomeAdapter
 import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentHomeBinding
@@ -24,12 +26,10 @@ import com.example.musiconline.ui.PlayerActivity
 import com.example.musiconline.ulti.Const
 import com.example.musiconline.ulti.Resource
 import com.example.musiconline.viewmodel.MainViewModel
-import com.example.musiconline.viewmodel.ViewModelProviderFactory
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-    private lateinit var viewModel: MainViewModel
     private var songAdapter = SongAdapter()
     private var recommendAdapter = RecommendSongHomeAdapter()
     private var mAudioList: ArrayList<Song> = arrayListOf()
@@ -38,72 +38,13 @@ class HomeFragment : Fragment() {
     private var mBound: Boolean = false
     private var mPosition = 0
     private lateinit var song: Song
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as MyService.BinderAudio
-            mService = binder.getService()
-            mService.getPosition().observe(this@HomeFragment, {
-                mPosition = it
-            })
-            mAudioList = mService.getListAudio()
-            mService.getStatusPlayer().observe(viewLifecycleOwner, {
-                song = if (mService.resultSearchSong.value == null) {
-                    mService.getPosition().value!!.let { it1 ->
-                        mService.getListAudioLiveData().value!![it1]
-                    }
-                } else {
-                    val resultSong = mService.resultSearchSong.value!!
-                    Song(
-                        resultSong.artist,
-                        null,
-                        resultSong.duration.toInt(),
-                        resultSong.id,
-                        null,
-                        resultSong.thumb,
-                        resultSong.name,
-                        null,
-                        null
-                    )
-                }
-                when (it) {
-                    true -> {
-                        if (binding.viewMini.visibility != View.VISIBLE) {
-                            binding.viewMini.visibility = View.VISIBLE
-                        }
-                        hideProgressBar()
-                        binding.btnPlayPause.setImageResource(R.drawable.icons8_pause_100)
-                        binding.btnPlayPause.setOnClickListener {
-                            mService.pauseMusic()
-                        }
-                        handleMusicDetails(song)
-                    }
-                    false -> {
-                        if (binding.viewMini.visibility != View.VISIBLE) {
-                            binding.viewMini.visibility = View.VISIBLE
-                        }
-                        binding.btnPlayPause.setImageResource(R.drawable.icons8_play_100)
-                        binding.btnPlayPause.setOnClickListener {
-                            mService.resumeMusic()
-                        }
-                        handleMusicDetails(song)
-                    }
-                }
-            })
-            mService.getStatusService().observe(viewLifecycleOwner, {
-                when (it) {
-                    false -> {
-                        if (binding.viewMini.visibility == View.VISIBLE) {
-                            binding.viewMini.visibility = View.GONE
-                        }
-                    }
-                }
-            })
-            mBound = true
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            mBound = false
-        }
+    private lateinit var connection: ServiceConnection
+    private val viewModel by lazy {
+        ViewModelProvider(
+            this,
+            MainViewModel.ViewModelProviderFactory(requireActivity().application, MainRepository())
+        )
+            .get(MainViewModel::class.java)
     }
 
     private fun handleMusicDetails(song: Song) {
@@ -132,7 +73,7 @@ class HomeFragment : Fragment() {
             mService.nextMusic()
             showProgressBar()
         }
-        binding.btnPreviousMini.setOnClickListener{
+        binding.btnPreviousMini.setOnClickListener {
             mService.previousMusic()
             showProgressBar()
         }
@@ -163,36 +104,104 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         init()
+        initService()
         super.onViewCreated(view, savedInstanceState)
+    }
+
+    private fun initService() {
+        connection = object : ServiceConnection {
+            override fun onServiceConnected(className: ComponentName, service: IBinder) {
+                val binder = service as MyService.BinderAudio
+                mService = binder.getService()
+                mService.getPosition().observe(viewLifecycleOwner, {
+                    mPosition = it
+                })
+                mAudioList = mService.getListAudio()
+                mService.getStatusPlayer().observe(viewLifecycleOwner, {
+                    song = if (mService.resultSearchSong.value == null) {
+                        mService.getPosition().value!!.let { it1 ->
+                            mService.getListAudioLiveData().value!![it1]
+                        }
+                    } else {
+                        val resultSong = mService.resultSearchSong.value!!
+                        Song(
+                            resultSong.artist,
+                            null,
+                            resultSong.duration.toInt(),
+                            resultSong.id,
+                            null,
+                            resultSong.thumb,
+                            resultSong.name,
+                            null,
+                            null
+                        )
+                    }
+                    when (it) {
+                        true -> {
+                            if (binding.viewMini.visibility != View.VISIBLE) {
+                                binding.viewMini.visibility = View.VISIBLE
+                            }
+                            hideProgressBar()
+                            binding.btnPlayPause.setImageResource(R.drawable.icons8_pause_100)
+                            binding.btnPlayPause.setOnClickListener {
+                                mService.pauseMusic()
+                            }
+                            handleMusicDetails(song)
+                        }
+                        false -> {
+                            if (binding.viewMini.visibility != View.VISIBLE) {
+                                binding.viewMini.visibility = View.VISIBLE
+                            }
+                            binding.btnPlayPause.setImageResource(R.drawable.icons8_play_100)
+                            binding.btnPlayPause.setOnClickListener {
+                                mService.resumeMusic()
+                            }
+                            handleMusicDetails(song)
+                        }
+                    }
+                })
+                mService.getStatusService().observe(viewLifecycleOwner, {
+                    when (it) {
+                        false -> {
+                            if (binding.viewMini.visibility == View.VISIBLE) {
+                                binding.viewMini.visibility = View.GONE
+                            }
+                        }
+                    }
+                })
+                mBound = true
+            }
+
+            override fun onServiceDisconnected(arg0: ComponentName) {
+                mBound = false
+            }
+
+        }
     }
 
     private fun init() {
         binding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext(),LinearLayoutManager.HORIZONTAL,false)
+            layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             setHasFixedSize(true)
             songAdapter.setOnClickListener(onClicked)
         }
         binding.recyclerViewRecommend.apply {
-            layoutManager = LinearLayoutManager(requireContext(),LinearLayoutManager.HORIZONTAL,false)
+            layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             setHasFixedSize(true)
             recommendAdapter.setOnClickListener(onClickedRecommend)
         }
-        setupViewModel()
-    }
-
-    private fun setupViewModel() {
-        val repository = MainRepository()
-        val factory = ViewModelProviderFactory(requireActivity().application, repository)
-        viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
         getTopSong()
         viewModel.id = "ZOFBAAWC"
         viewModel.getRecommendSong()
         getRecommendSong()
     }
 
+
     private fun getRecommendSong() {
         viewModel.recommendSongData.observe(viewLifecycleOwner, { it ->
-            when(it){
+            when (it) {
                 is Resource.Success -> {
                     hideProgressBar()
                     it.data?.let {

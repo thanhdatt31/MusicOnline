@@ -14,17 +14,14 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musiconline.adapter.RecommendAdapter
-import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentRecommendBinding
 import com.example.musiconline.model.Song
 import com.example.musiconline.repository.MainRepository
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ulti.Resource
 import com.example.musiconline.viewmodel.MainViewModel
-import com.example.musiconline.viewmodel.ViewModelProviderFactory
 
 class RecommendFragment : Fragment() {
-    private lateinit var viewModel: MainViewModel
     private var _binding: FragmentRecommendBinding? = null
     private val binding get() = _binding!!
     private lateinit var connection: ServiceConnection
@@ -35,6 +32,14 @@ class RecommendFragment : Fragment() {
     private var mPosition = 0
     private var songAdapter = RecommendAdapter()
     private var mListOfflineSong: ArrayList<Song>? = arrayListOf()
+    private val viewModel by lazy {
+        ViewModelProvider(
+            this,
+            MainViewModel.ViewModelProviderFactory(requireActivity().application, MainRepository())
+        )
+            .get(MainViewModel::class.java)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -93,25 +98,25 @@ class RecommendFragment : Fragment() {
     }
 
     private fun getRecommendSong() {
-       viewModel.recommendSongData.observe(this, { it ->
-           when(it){
-               is Resource.Success -> {
-                   hideProgressBar()
-                   it.data?.let {
-                       mNewAudioList = it.data.items
-                       songAdapter.setData(mNewAudioList)
-                       binding.recyclerView.adapter = songAdapter
-                   }
-               }
-               is Resource.Loading -> {
-                   showProgressBar()
-               }
-               is Resource.Error -> {
-                   hideProgressBar()
-                   Toast.makeText(requireContext(), "Error", Toast.LENGTH_SHORT).show()
-               }
-           }
-       })
+        viewModel.recommendSongData.observe(this, { it ->
+            when (it) {
+                is Resource.Success -> {
+                    hideProgressBar()
+                    it.data?.let {
+                        mNewAudioList = it.data.items
+                        songAdapter.setData(mNewAudioList)
+                        binding.recyclerView.adapter = songAdapter
+                    }
+                }
+                is Resource.Loading -> {
+                    showProgressBar()
+                }
+                is Resource.Error -> {
+                    hideProgressBar()
+                    Toast.makeText(requireContext(), "Error", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
     }
 
     private fun showProgressBar() {
@@ -124,9 +129,6 @@ class RecommendFragment : Fragment() {
 
 
     private fun setupViewModel(id: String?) {
-        val repository = MainRepository()
-        val factory = ViewModelProviderFactory(requireActivity().application, repository)
-        viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
         if (id.isNullOrEmpty()) {
             getOfflineSong()
         } else {

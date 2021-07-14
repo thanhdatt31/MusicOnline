@@ -15,22 +15,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
 import com.example.musiconline.adapter.RecommendAdapter
-import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.databinding.FragmentOfflineMusicBinding
 import com.example.musiconline.model.Song
 import com.example.musiconline.repository.MainRepository
 import com.example.musiconline.service.MyService
 import com.example.musiconline.ui.PlayerActivity
 import com.example.musiconline.ulti.Const
-import com.example.musiconline.ulti.Const.getAlbumBitmap
 import com.example.musiconline.viewmodel.MainViewModel
-import com.example.musiconline.viewmodel.ViewModelProviderFactory
 
 
 class OfflineMusicFragment : Fragment() {
     private var _binding: FragmentOfflineMusicBinding? = null
     private val binding get() = _binding!!
-    private lateinit var viewModel: MainViewModel
+    private val repository = MainRepository()
     private var mListOfflineSong: ArrayList<Song>? = arrayListOf()
     private var songAdapter = RecommendAdapter()
     private lateinit var connection: ServiceConnection
@@ -38,6 +35,12 @@ class OfflineMusicFragment : Fragment() {
     private lateinit var mService: MyService
     private var mPosition = 0
     private lateinit var song: Song
+    private val viewModel by lazy {
+        ViewModelProvider(
+            this,
+            MainViewModel.ViewModelProviderFactory(requireActivity().application, repository)
+        ).get(MainViewModel::class.java)
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -144,22 +147,15 @@ class OfflineMusicFragment : Fragment() {
         binding.btnNextMini.setOnClickListener {
             mService.nextMusic()
         }
-        binding.btnPreviousMini.setOnClickListener{
+        binding.btnPreviousMini.setOnClickListener {
             mService.previousMusic()
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupViewModel()
-        init()
-    }
-
-    private fun setupViewModel() {
-        val repository = MainRepository()
-        val factory = ViewModelProviderFactory(requireActivity().application, repository)
-        viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
         getOfflineSong()
+        init()
     }
 
     private fun getOfflineSong() {

@@ -2,9 +2,7 @@ package com.example.musiconline.viewmodel
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.musiconline.model.Song
 import com.example.musiconline.repository.RoomRepository
 import kotlinx.coroutines.launch
@@ -25,11 +23,25 @@ class RoomViewModel(
         return liveData
     }
 
-    fun deleteSong(context: Context, id : String) {
+    fun deleteSong(context: Context, id: String) {
         roomRepository.deleteSong(context, id)
     }
 
-    fun deleteSpecificSongByUri(context: Context,uri : String){
-        roomRepository.deleteSongByUri(context,uri)
+    fun deleteSpecificSongByUri(context: Context, uri: String) {
+        roomRepository.deleteSongByUri(context, uri)
+    }
+
+    class RoomViewModelProviderFactory(
+        val app: Application,
+        private val roomRepository: RoomRepository
+    ) : ViewModelProvider.Factory {
+
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(RoomViewModel::class.java)) {
+                return RoomViewModel(app, roomRepository) as T
+            }
+            throw IllegalArgumentException("Unknown class name")
+        }
+
     }
 }
