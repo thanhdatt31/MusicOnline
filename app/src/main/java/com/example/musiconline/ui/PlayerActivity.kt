@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
+import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.widget.SeekBar
@@ -31,7 +32,8 @@ import com.example.musiconline.ulti.Const.REPEAT_ALL
 import com.example.musiconline.ulti.Const.REPEAT_OFF
 import com.example.musiconline.ulti.Const.REPEAT_ONE
 import com.example.musiconline.viewmodel.RoomViewModel
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.*
+import java.lang.Runnable
 
 class PlayerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPlayerBinding
@@ -443,7 +445,6 @@ class PlayerActivity : AppCompatActivity() {
                 }
 
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                    sendProgress(seekBar!!.progress)
                 }
 
             })

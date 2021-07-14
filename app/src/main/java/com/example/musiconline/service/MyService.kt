@@ -371,19 +371,30 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
     override fun onCompletion(mp: MediaPlayer?) {
         when (restoreRepeatMode()) {
             REPEAT_ONE -> {
-                playAudio()
+                CoroutineScope(Dispatchers.Main).launch {
+                    delay(1000)
+                    playAudio()
+                }
             }
             REPEAT_OFF -> {
-                nextMusic()
+                CoroutineScope(Dispatchers.Main).launch {
+                    delay(1000)
+                    nextMusic()
+                }
             }
             REPEAT_ALL -> {
                 if (mPosition.value!! == mAudioList.size - 1) {
                     mPosition.value = 0
-                    playAudio()
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(1000)
+                        playAudio()
+                    }
                 } else {
                     mPosition.value = mPosition.value?.plus(1)
-                    playAudio()
-
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(1000)
+                        playAudio()
+                    }
                 }
             }
         }
