@@ -45,7 +45,7 @@
             android:fontFamily="@font/gilroy_regular"
             android:text="@string/app_name"
             android:textColor="#091127"
-            android:textSize="16sp"
+            android:autoSizeTextType="uniform"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/tv_artist_title"
             app:layout_constraintLeft_toRightOf="@id/img_album_border"
@@ -58,7 +58,7 @@
             android:fontFamily="@font/gilroy_regular"
             android:text="@string/app_name"
             android:textColor="#8996B8"
-            android:textSize="12sp"
+            android:autoSizeTextType="uniform"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="@id/tv_song_title"
             app:layout_constraintTop_toBottomOf="@id/tv_song_title" />

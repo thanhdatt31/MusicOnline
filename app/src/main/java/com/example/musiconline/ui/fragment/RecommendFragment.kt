@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -104,6 +105,7 @@ class RecommendFragment : Fragment() {
                     hideProgressBar()
                     it.data?.let {
                         mNewAudioList = it.data.items
+                        mService.mAudioList.addAll(mNewAudioList)
                         songAdapter.setData(mNewAudioList)
                         binding.recyclerView.adapter = songAdapter
                     }
@@ -149,14 +151,14 @@ class RecommendFragment : Fragment() {
 
     private val onClicked = object : RecommendAdapter.OnItemClickListener {
         override fun onClicked(position: Int) {
-            mPosition = position
+            mService.mPosition.value = position
             if (mListOfflineSong.isNullOrEmpty()) {
                 mService.setListAudioAndPosition(mNewAudioList, position)
             } else {
                 mService.setListAudioAndPosition(mListOfflineSong!!, position)
             }
-            mService.playAudio()
             refreshRecommendList()
+            mService.playAudio()
         }
 
     }

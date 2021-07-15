@@ -17,7 +17,6 @@
         android:fontFamily="@font/gilroy_bold"
         android:text="Chart #100"
         android:textColor="#091127"
-        android:textSize="24sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,7 +38,7 @@
         android:fontFamily="@font/gilroy_bold"
         android:text="Recommended for you"
         android:textColor="#091127"
-        android:textSize="24sp"
+        android:autoSizeTextType="uniform"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/recyclerView" />
 
@@ -67,7 +66,6 @@
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHeight_percent="0.08">
-
         <androidx.cardview.widget.CardView
             android:id="@+id/img_album_border"
             android:layout_width="0dp"
@@ -86,26 +84,32 @@
 
         <TextView
             android:id="@+id/tv_song_title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:fontFamily="@font/gilroy_regular"
             android:text="@string/app_name"
             android:textColor="#091127"
-            android:textSize="16sp"
+            android:ellipsize="end"
+            app:layout_constraintRight_toLeftOf="@id/btn_previous_mini"
+            android:autoSizeTextType="uniform"
             android:textStyle="bold"
+            android:maxLines="1"
             app:layout_constraintBottom_toTopOf="@id/tv_artist_title"
             app:layout_constraintLeft_toRightOf="@id/img_album_border"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_artist_title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:fontFamily="@font/gilroy_regular"
             android:text="@string/app_name"
             android:textColor="#8996B8"
-            android:textSize="12sp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:autoSizeTextType="uniform"
+            app:layout_constraintRight_toLeftOf="@id/btn_previous_mini"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="@id/tv_song_title"
             app:layout_constraintTop_toBottomOf="@id/tv_song_title" />

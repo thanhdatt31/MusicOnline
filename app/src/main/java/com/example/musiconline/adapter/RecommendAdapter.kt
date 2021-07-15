@@ -16,7 +16,7 @@ import java.io.Serializable
 class RecommendAdapter  : RecyclerView.Adapter<RecommendAdapter.ViewHolder>() {
     private lateinit var context: Context
     private var songList: ArrayList<Song> = arrayListOf()
-    var listener: RecommendAdapter.OnItemClickListener? = null
+    var listener: OnItemClickListener? = null
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var imgThumb: ImageView = itemView.findViewById(R.id.img_thumb)
         var title: TextView = itemView.findViewById(R.id.tv_title)

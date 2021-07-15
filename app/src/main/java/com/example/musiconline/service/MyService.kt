@@ -15,7 +15,6 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.example.musiconline.R
-import com.example.musiconline.adapter.SongAdapter
 import com.example.musiconline.model.ResultSong
 import com.example.musiconline.model.Song
 import com.example.musiconline.ui.MainActivity
@@ -35,14 +34,13 @@ import kotlinx.coroutines.*
 
 class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     private val mIBinder = BinderAudio()
-    private var mAudioList: ArrayList<Song> = arrayListOf()
-    private var mPosition: MutableLiveData<Int> = MutableLiveData()
+    var mAudioList: ArrayList<Song> = arrayListOf()
+    var mPosition: MutableLiveData<Int> = MutableLiveData()
     private var isPlaying: MutableLiveData<Boolean> = MutableLiveData()
     private var audioListLiveData: MutableLiveData<ArrayList<Song>> = MutableLiveData()
     private var isServiceWorking: MutableLiveData<Boolean> = MutableLiveData()
     private var musicPlayer: MediaPlayer = MediaPlayer()
     var resultSearchSong: MutableLiveData<ResultSong> = MutableLiveData()
-    private var adapter = SongAdapter()
     private lateinit var thumbnail: Bitmap
 
     inner class BinderAudio : Binder() {
@@ -91,9 +89,10 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
     fun getPosition(): MutableLiveData<Int> {
         return mPosition
     }
+
     private fun loadArtworkAsync(): Deferred<Bitmap> = GlobalScope.async(Dispatchers.IO) {
-        if(resultSearchSong.value == null){
-            if(mAudioList[mPosition.value!!].thumbnail != null){
+        if (resultSearchSong.value == null) {
+            if (mAudioList[mPosition.value!!].thumbnail != null) {
                 thumbnail = Glide.with(this@MyService)
                     .asBitmap()
                     .load(mAudioList[mPosition.value!!].thumbnail)
@@ -103,7 +102,8 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
                 thumbnail = Glide.with(this@MyService)
                     .asBitmap()
                     .load(mAudioList[mPosition.value!!].uri?.let {
-                        getAlbumBitmap(this@MyService,
+                        getAlbumBitmap(
+                            this@MyService,
                             it
                         )
                     })
@@ -112,7 +112,8 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
             }
 
         } else {
-            val thumb = "https://photo-resize-zmp3.zadn.vn/w94_r1x1_jpeg/${resultSearchSong.value!!.thumb}"
+            val thumb =
+                "https://photo-resize-zmp3.zadn.vn/w94_r1x1_jpeg/${resultSearchSong.value!!.thumb}"
             thumbnail = Glide.with(this@MyService)
                 .asBitmap()
                 .load(thumb)
@@ -336,7 +337,7 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
 
     }
 
-    fun pauseMusic(){
+    fun pauseMusic() {
         musicPlayer.pause()
         showNotification()
         isPlaying.postValue(musicPlayer.isPlaying)

@@ -8,10 +8,9 @@
     card_view:cardElevation="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-
         android:layout_marginEnd="10dp"
         android:background="@color/white">
 
@@ -46,22 +45,28 @@
 
         <TextView
             android:id="@+id/tv_title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:text="Title"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:textStyle="bold"
             android:textColor="@color/black"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toRightOf="@id/view_thumb"
             app:layout_constraintTop_toTopOf="@id/view_thumb" />
 
         <TextView
             android:id="@+id/tv_artist"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:text="Artist"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:textColor="@color/black"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toRightOf="@id/view_thumb"
             app:layout_constraintTop_toBottomOf="@id/tv_title" />
         <TextView

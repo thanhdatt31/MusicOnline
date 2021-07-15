@@ -273,8 +273,8 @@ class PlayerActivity : AppCompatActivity() {
 
                 mService.getListAudioLiveData().observe(this@PlayerActivity, {
                     handler.removeCallbacks(runnable)
-                    mAudioList = it
                     mPosition = mService.getPosition().value!!
+                    mAudioList = it
                     handleLayout()
                 })
                 mService.getPosition().observe(this@PlayerActivity, {
