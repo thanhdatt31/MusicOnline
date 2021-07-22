@@ -16,20 +16,20 @@
         <ImageView
             android:id="@+id/img_thumb"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="@android:color/darker_gray" />
     </androidx.cardview.widget.CardView>
 
     <TextView
         android:id="@+id/tv_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
+        android:layout_marginTop="6dp"
+        android:autoSizeTextType="uniform"
+        android:background="@android:color/darker_gray"
         android:fontFamily="@font/gilroy_medium"
         android:textAlignment="center"
         android:textColor="#091127"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:autoSizeTextType="uniform"
         app:layout_constraintLeft_toLeftOf="@id/view_thumb"
         app:layout_constraintRight_toRightOf="@id/view_thumb"
         app:layout_constraintTop_toBottomOf="@id/view_thumb" />
@@ -37,14 +37,12 @@
     <TextView
         android:id="@+id/tv_artist"
         android:layout_width="0dp"
-        android:textAlignment="center"
         android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:fontFamily="@font/gilroy_regular"
+        android:layout_marginTop="6dp"
         android:autoSizeTextType="uniform"
+        android:background="@android:color/darker_gray"
+        android:fontFamily="@font/gilroy_regular"
         android:textColor="#8996B8"
-        android:maxLines="1"
-        android:ellipsize="end"
         app:layout_constraintLeft_toLeftOf="@id/view_thumb"
         app:layout_constraintRight_toRightOf="@id/view_thumb"
         app:layout_constraintTop_toBottomOf="@id/tv_title" />
@@ -53,6 +51,7 @@
         android:id="@+id/tv_duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Duration"
         android:textColor="#818181"
         android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="@id/tv_title"
@@ -62,6 +61,7 @@
         android:id="@+id/tv_pos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="1"
         android:textColor="@color/baemin"
         android:textSize="20sp"
         app:layout_constraintLeft_toLeftOf="@id/view_thumb"

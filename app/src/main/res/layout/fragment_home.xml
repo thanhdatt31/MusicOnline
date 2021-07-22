@@ -12,11 +12,11 @@
         android:id="@+id/tv_chart"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginStart="@dimen/tv_chart_margin"
+        android:layout_marginTop="@dimen/tv_chart_margin"
         android:fontFamily="@font/gilroy_bold"
-        android:text="Chart #100"
-        android:textColor="#091127"
+        android:text="@string/tv_chart"
+        android:textColor="@color/black_pearl"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,32 +24,85 @@
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/recyclerview_margin_top"
         app:layout_constraintLeft_toLeftOf="@id/tv_chart"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_chart" />
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmer_view_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:layout_constraintLeft_toLeftOf="@id/tv_chart"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_chart">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <include layout="@layout/item_song_chart_shimmer" />
+
+            <include layout="@layout/item_song_chart_shimmer" />
+
+            <include layout="@layout/item_song_chart_shimmer" />
+
+            <include layout="@layout/item_song_chart_shimmer" />
+
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+
 
     <TextView
         android:id="@+id/tv_recommend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="30dp"
-        android:fontFamily="@font/gilroy_bold"
-        android:text="Recommended for you"
-        android:textColor="#091127"
+        android:layout_marginStart="@dimen/tv_recommend_margin"
+        android:layout_marginTop="@dimen/tv_recommend_margin"
         android:autoSizeTextType="uniform"
+        android:fontFamily="@font/gilroy_bold"
+        android:text="@string/tv_recommend"
+        android:textColor="@color/black_pearl"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recyclerView" />
+        app:layout_constraintTop_toBottomOf="@id/shimmer_view_container" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_recommend"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/recyclerview_margin_top"
         app:layout_constraintLeft_toLeftOf="@id/tv_recommend"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_recommend" />
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmer_view_container_recommend"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:layout_constraintLeft_toLeftOf="@id/tv_recommend"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_recommend">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <include layout="@layout/item_song_chart_shimmer" />
+
+            <include layout="@layout/item_song_chart_shimmer" />
+
+            <include layout="@layout/item_song_chart_shimmer" />
+
+            <include layout="@layout/item_song_chart_shimmer" />
+
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
     <ImageView
         android:id="@+id/img_loading"
         android:layout_width="200dp"
@@ -58,14 +111,16 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/view_mini"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="#F7FAFF"
+        android:background="@color/zircon"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHeight_percent="0.08">
+
         <androidx.cardview.widget.CardView
             android:id="@+id/img_album_border"
             android:layout_width="0dp"
@@ -86,39 +141,39 @@
             android:id="@+id/tv_song_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:fontFamily="@font/gilroy_regular"
-            android:text="@string/app_name"
-            android:textColor="#091127"
-            android:ellipsize="end"
-            app:layout_constraintRight_toLeftOf="@id/btn_previous_mini"
+            android:layout_marginStart="@dimen/tv_song_title_margin_start"
             android:autoSizeTextType="uniform"
-            android:textStyle="bold"
+            android:ellipsize="end"
+            android:fontFamily="@font/gilroy_regular"
             android:maxLines="1"
+            android:text="@string/app_name"
+            android:textColor="@color/black_pearl"
+            android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/tv_artist_title"
             app:layout_constraintLeft_toRightOf="@id/img_album_border"
+            app:layout_constraintRight_toLeftOf="@id/btn_previous_mini"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_artist_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/gilroy_regular"
-            android:text="@string/app_name"
-            android:textColor="#8996B8"
-            android:ellipsize="end"
-            android:maxLines="1"
             android:autoSizeTextType="uniform"
-            app:layout_constraintRight_toLeftOf="@id/btn_previous_mini"
+            android:ellipsize="end"
+            android:fontFamily="@font/gilroy_regular"
+            android:maxLines="1"
+            android:text="@string/app_name"
+            android:textColor="@color/blue_grey_300"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="@id/tv_song_title"
+            app:layout_constraintRight_toLeftOf="@id/btn_previous_mini"
             app:layout_constraintTop_toBottomOf="@id/tv_song_title" />
 
         <ImageView
             android:id="@+id/btn_play_pause"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_marginEnd="10dp"
+            android:layout_width="@dimen/btn_play_pause_width"
+            android:layout_height="@dimen/btn_play_pause_height"
+            android:layout_marginEnd="@dimen/btn_play_pause_margin_end"
             android:src="@drawable/icons8_pause_100"
             app:layout_constraintBottom_toBottomOf="@id/view_mini"
             app:layout_constraintRight_toLeftOf="@id/btn_next_mini"
@@ -127,9 +182,9 @@
 
         <ImageView
             android:id="@+id/btn_next_mini"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_marginEnd="30dp"
+            android:layout_width="@dimen/btn_next_mini_width"
+            android:layout_height="@dimen/btn_next_mini_height"
+            android:layout_marginEnd="@dimen/btn_next_mini_margin_end"
             android:src="@drawable/icons8_end_100"
             app:layout_constraintBottom_toBottomOf="@id/view_mini"
             app:layout_constraintRight_toRightOf="@id/view_mini"
@@ -137,9 +192,9 @@
 
         <ImageView
             android:id="@+id/btn_previous_mini"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_marginEnd="10dp"
+            android:layout_width="@dimen/btn_previous_mini_width"
+            android:layout_height="@dimen/btn_previous_mini_width"
+            android:layout_marginEnd="@dimen/btn_previous_mini_margin_end"
             android:src="@drawable/icons8_previvous"
             app:layout_constraintBottom_toBottomOf="@id/view_mini"
             app:layout_constraintRight_toLeftOf="@id/btn_play_pause"

@@ -26,6 +26,10 @@ import com.example.musiconline.ui.PlayerActivity
 import com.example.musiconline.ulti.Const
 import com.example.musiconline.ulti.Resource
 import com.example.musiconline.viewmodel.MainViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -90,7 +94,6 @@ class HomeFragment : Fragment() {
     override fun onDestroy() {
         requireActivity().unbindService(connection)
         mBound = false
-        Log.d("datnt", "onDestroy: ")
         super.onDestroy()
     }
 
@@ -192,10 +195,18 @@ class HomeFragment : Fragment() {
             setHasFixedSize(true)
             recommendAdapter.setOnClickListener(onClickedRecommend)
         }
-        getTopSong()
+        CoroutineScope(Dispatchers.Main).launch {
+            binding.recyclerView.visibility = View.INVISIBLE
+            delay(1500)
+            getTopSong()
+        }
         viewModel.id = "ZOFBAAWC"
         viewModel.getRecommendSong()
-        getRecommendSong()
+        CoroutineScope(Dispatchers.Main).launch {
+            binding.recyclerViewRecommend.visibility = View.INVISIBLE
+            delay(1500)
+            getRecommendSong()
+        }
     }
 
 
@@ -203,7 +214,9 @@ class HomeFragment : Fragment() {
         viewModel.recommendSongData.observe(viewLifecycleOwner, { it ->
             when (it) {
                 is Resource.Success -> {
-                    hideProgressBar()
+                    binding.shimmerViewContainerRecommend.stopShimmer()
+                    binding.shimmerViewContainerRecommend.visibility = View.INVISIBLE
+                    binding.recyclerViewRecommend.visibility = View.VISIBLE
                     it.data?.let {
                         mRecommendList = it.data.items
                         recommendAdapter.setData(mRecommendList)
@@ -211,10 +224,11 @@ class HomeFragment : Fragment() {
                     }
                 }
                 is Resource.Loading -> {
-                    showProgressBar()
                 }
                 is Resource.Error -> {
-                    hideProgressBar()
+                    binding.shimmerViewContainerRecommend.visibility = View.INVISIBLE
+                    binding.shimmerViewContainerRecommend.stopShimmer()
+                    binding.recyclerViewRecommend.visibility = View.VISIBLE
                     Toast.makeText(requireContext(), "Error", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -225,7 +239,9 @@ class HomeFragment : Fragment() {
         viewModel.topSongData.observe(viewLifecycleOwner, { it ->
             when (it) {
                 is Resource.Success -> {
-                    hideProgressBar()
+                    binding.shimmerViewContainer.visibility = View.INVISIBLE
+                    binding.shimmerViewContainer.stopShimmer()
+                    binding.recyclerView.visibility = View.VISIBLE
                     it.data?.let {
                         this.mAudioList = it.data.song
                         songAdapter.setData(mAudioList)
@@ -233,10 +249,12 @@ class HomeFragment : Fragment() {
                     }
                 }
                 is Resource.Loading -> {
-                    showProgressBar()
+                    binding.shimmerViewContainer.startShimmer()
                 }
                 is Resource.Error -> {
-                    hideProgressBar()
+                    binding.shimmerViewContainer.visibility = View.INVISIBLE
+                    binding.shimmerViewContainer.stopShimmer()
+                    binding.recyclerView.visibility = View.VISIBLE
                     Toast.makeText(requireContext(), "Error", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -268,5 +286,9 @@ class HomeFragment : Fragment() {
             showProgressBar()
         }
 
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 }

@@ -373,13 +373,13 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
         when (restoreRepeatMode()) {
             REPEAT_ONE -> {
                 CoroutineScope(Dispatchers.Main).launch {
-                    delay(1000)
+                    delay(100)
                     playAudio()
                 }
             }
             REPEAT_OFF -> {
                 CoroutineScope(Dispatchers.Main).launch {
-                    delay(1000)
+                    delay(100)
                     nextMusic()
                 }
             }
@@ -387,13 +387,13 @@ class MyService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompl
                 if (mPosition.value!! == mAudioList.size - 1) {
                     mPosition.value = 0
                     CoroutineScope(Dispatchers.Main).launch {
-                        delay(1000)
+                        delay(100)
                         playAudio()
                     }
                 } else {
                     mPosition.value = mPosition.value?.plus(1)
                     CoroutineScope(Dispatchers.Main).launch {
-                        delay(1000)
+                        delay(100)
                         playAudio()
                     }
                 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="tv_chart_margin">30dp</dimen>
+    <dimen name="recyclerview_margin_top">20dp</dimen>
+    <dimen name="tv_recommend_margin">30dp</dimen>
+    <dimen name="tv_song_title_margin_start">20dp</dimen>
+    <dimen name="btn_play_pause_width">25dp</dimen>
+    <dimen name="btn_play_pause_height">25dp</dimen>
+    <dimen name="btn_play_pause_margin_end">10dp</dimen>
+    <dimen name="btn_previous_mini_width">25dp</dimen>
+    <dimen name="btn_previous_mini_height">25dp</dimen>
+    <dimen name="btn_previous_mini_margin_end">10dp</dimen>
+    <dimen name="btn_next_mini_width">25dp</dimen>
+    <dimen name="btn_next_mini_height">25dp</dimen>
+    <dimen name="btn_next_mini_margin_end">30dp</dimen>
+</resources>

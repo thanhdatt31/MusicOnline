@@ -14,4 +14,7 @@
     <color name="colorAccent">#4e33ff</color>
     <color name="ColorWhite">#ffffff</color>
     <color name="ColorGray">#CACACA</color>
+    <color name="black_pearl">#091127</color>
+    <color name="zircon">#F7FAFF</color>
+    <color name="blue_grey_300">#8996B8</color>
 </resources>
